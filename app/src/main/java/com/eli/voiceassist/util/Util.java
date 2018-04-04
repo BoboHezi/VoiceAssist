@@ -47,6 +47,7 @@ public class Util {
     private static final String TAG = "elifli";
 
     private static List<String> allPermissions = new ArrayList<>();
+
     static {
         allPermissions.add(Manifest.permission.READ_CONTACTS);
         allPermissions.add(Manifest.permission.RECORD_AUDIO);
@@ -101,7 +102,7 @@ public class Util {
 
         StringBuffer sb = new StringBuffer();
         Random random = new Random();
-        for (int i = 0; i < length; i ++) {
+        for (int i = 0; i < length; i++) {
             char c = (char) (random.nextInt(92) + 33);
             sb.append(c);
         }
@@ -172,7 +173,7 @@ public class Util {
                 //设置参数
                 if (!semantic.isNull("slots")) {
                     JSONArray slots = semantic.getJSONArray("slots");
-                    for (int i = 0; i < slots.length(); i ++) {
+                    for (int i = 0; i < slots.length(); i++) {
                         JSONObject slot = slots.getJSONObject(i);
                         String value = slot.optString("value");
                         result.addParam(value);

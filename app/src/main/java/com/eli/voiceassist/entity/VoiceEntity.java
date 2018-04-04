@@ -318,8 +318,11 @@ public final class VoiceEntity implements VoiceInitialListener {
 
     public interface OnVoiceEventListener {
         void onVolumeChanged(int volume);
+
         void onRecognizeResult(boolean wrong, String result);
+
         void onRecognizerStatusChanged(boolean status);
+
         void onAiuiAnalyserResult(Echo echo);
     }
 }

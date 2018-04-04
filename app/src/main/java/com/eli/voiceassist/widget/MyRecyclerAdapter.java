@@ -51,6 +51,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.My
     class MyViewHolder extends RecyclerView.ViewHolder {
         TextView messageTextView;
         LinearLayout outView;
+
         public MyViewHolder(View view) {
             super(view);
             outView = view.findViewById(R.id.out_view);

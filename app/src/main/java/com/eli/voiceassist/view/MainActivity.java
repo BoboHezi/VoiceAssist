@@ -48,7 +48,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.voice_assist:
                 intent = new Intent(MainActivity.this, VoiceAssistDemoActivity.class);
 
-            default:break;
+            default:
+                break;
         }
 
         if (intent != null) {

@@ -209,7 +209,7 @@ public class RecordButton extends View {
             while (true) {
                 if (breathStrength > 0.8 || breathStrength < 0.1) {
                     alphaOffset = -alphaOffset;
-                    breathOffset = - breathOffset;
+                    breathOffset = -breathOffset;
                 }
 
                 breathStrength += breathOffset;
@@ -237,6 +237,7 @@ public class RecordButton extends View {
     public interface OnBreathListener {
         int BREATH_STATE_START = 1;
         int BREATH_STATE_STOP = 2;
+
         void onBreathStateChanged(int state);
     }
 }

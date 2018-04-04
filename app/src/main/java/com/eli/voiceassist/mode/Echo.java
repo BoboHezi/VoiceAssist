@@ -35,7 +35,8 @@ public class Echo {
     //参数
     private List<String> params;
 
-    private Echo(){}
+    private Echo() {
+    }
 
     public Echo(int type) {
         this(type, null);

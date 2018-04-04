@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">VoiceAssist</string>
+
+    <string-array name="intent_array">
+        <item>dial_someone</item>
+        <item>create_contact</item>
+        <item>dial_number</item>
+        <item>search_by_song</item>
+        <item>random_song</item>
+        <item>search_by_artist</item>
+        <item>text_someone</item>
+        <item>text_someone_message</item>
+        <item>open_app</item>
+        <item>call_the_police</item>
+        <item>call_the_ambulance</item>
+        <item>QUERY</item>
+    </string-array>
+</resources>

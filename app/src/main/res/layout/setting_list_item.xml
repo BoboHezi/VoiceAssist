@@ -38,7 +38,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="17dp"
-                    android:textColor="#0a0a0a"/>
+                    android:textColor="#0a0a0a" />
 
                 <TextView
                     android:id="@+id/item_summary"

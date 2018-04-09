@@ -44,7 +44,7 @@ public class SettingActivity extends AppCompatActivity {
 
     private int nowSelectIndex;
 
-    private String titles[] = new String[]{"口音", "是否发声", "发音人", "语速", "音量"};
+    private String titles[] = new String[]{"识别口音(中文)", "是否发声", "发音人", "语速", "音量"};
     private String summarise[] = new String[]{"识别语音口音", "是", "小燕", "50", "50"};
     private String selectAccent[] = new String[]{"普通话", "粤语", "四川话"};
     private String selectName[] = new String[]{"小燕", "小宇", "凯瑟琳", "亨利", "小梅", "晓琳"};
@@ -170,6 +170,8 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     private void resetLayout(SettingParams params) {
+        if (params == null)
+            return;
         data.clear();
         for (int index = 0; index < titles.length; index++) {
             Map<String, Object> map = new HashMap<>();
@@ -178,14 +180,7 @@ public class SettingActivity extends AppCompatActivity {
 
             switch (index) {
                 case 0:
-                    String accent = params.getRecognizerAccent();
-                    if (accent.equals("mandarin")) {
-                        map.put("summary", "普通话");
-                    } else if (accent.equals("cantonese")) {
-                        map.put("summary", "粤  语");
-                    } else if (accent.equals("lmz")) {
-                        map.put("summary", "四川话");
-                    }
+                    map.put("summary", params.getAccentDisplay());
                     break;
 
                 case 1:
@@ -193,7 +188,7 @@ public class SettingActivity extends AppCompatActivity {
                     break;
 
                 case 2:
-                    map.put("summary", "发音人  " + params.getVoiceName());
+                    map.put("summary", params.getNameDisplay());
                     break;
 
                 case 3:
@@ -216,13 +211,14 @@ public class SettingActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
     /**
      *******Recognizer********
      * Accent       口音
-     * VAD_BOS      前端点
-     * VAD_EOS      后端点
-     *
-     ******Synthesizer********
      * Speak        是否发声
      * VOICE_NAME   发音人
      * SPEED        语速

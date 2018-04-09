@@ -43,7 +43,7 @@ public final class VoiceEntity implements VoiceInitialListener {
 
     private static VoiceEntity instance;
 
-    private boolean speakEnable = false;
+    private boolean speakEnable = true;
     private boolean aiuiEnable = true;
     private boolean isAIUIWakeup = false;
     private boolean isRecording = false;
@@ -51,12 +51,12 @@ public final class VoiceEntity implements VoiceInitialListener {
     private VoiceEntity(Context context) {
         Log.i(TAG, "create voice");
         this.context = context;
-        initParams();
+        setParams();
         mRecognizer = SpeechRecognizer.createRecognizer(context, this);
-        setRecognizerParam();
+        setRecognizerParam(params);
         if (speakEnable) {
             mSynthesizer = SpeechSynthesizer.createSynthesizer(context, this);
-            setSynthesizerParam();
+            setSynthesizerParam(params);
         }
         if (aiuiEnable) {
             mAiuiAgent = AIUIAgent.createAgent(context, Util.getAIUIParams(context), this);
@@ -65,7 +65,7 @@ public final class VoiceEntity implements VoiceInitialListener {
         }
     }
 
-    private void initParams() {
+    private void setParams() {
         String params = Util.readStorageParams(context);
         if (params == null || TextUtils.isEmpty(params)) {
             this.params = new SettingParams();
@@ -144,7 +144,7 @@ public final class VoiceEntity implements VoiceInitialListener {
         this.speakEnable = enable;
         if (speakEnable && mSynthesizer == null) {
             mSynthesizer = SpeechSynthesizer.createSynthesizer(context, this);
-            setSynthesizerParam();
+            setSynthesizerParam(params);
         }
     }
 
@@ -154,6 +154,14 @@ public final class VoiceEntity implements VoiceInitialListener {
 
     public boolean isRecording() {
         return this.isRecording;
+    }
+
+    public void setParams(SettingParams params) {
+        this.params = params;
+        this.speakEnable = params.isSpeakEnable();
+        setRecognizerParam(params);
+        if (speakEnable)
+            setSynthesizerParam(params);
     }
 
     /**
@@ -325,7 +333,7 @@ public final class VoiceEntity implements VoiceInitialListener {
     /**
      * set params for voice mRecognizer
      */
-    private void setRecognizerParam() {
+    private void setRecognizerParam(SettingParams params) {
         if (mRecognizer == null)
             return;
         //清空所以参数
@@ -349,7 +357,7 @@ public final class VoiceEntity implements VoiceInitialListener {
     /**
      * set params for voice mSynthesizer
      */
-    private void setSynthesizerParam() {
+    private void setSynthesizerParam(SettingParams params) {
         if (mSynthesizer == null)
             return;
         //清除所有参数

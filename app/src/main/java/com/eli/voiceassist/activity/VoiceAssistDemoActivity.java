@@ -16,6 +16,7 @@ import com.eli.voiceassist.entity.VoiceEntity;
 import com.eli.voiceassist.mode.AppInfo;
 import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
+import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.util.Util;
 import com.eli.voiceassist.adapter.DialogListAdapter;
 import com.eli.voiceassist.widget.RecordButton;
@@ -33,6 +34,8 @@ import java.util.Map;
 public class VoiceAssistDemoActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
 
     private static final String TAG = "elifli";
+
+    private static final int CODE_RESULT_SETTING = 1;
 
     private RecordButton mVoiceRecode;
     private ListView mDialogListView;
@@ -54,6 +57,15 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         Util.permissionRequest(this);
         initVoiceAssist();
         readInfo();
+    }
+
+    @Override
+    protected void onResume() {
+        if (mVoiceEntity != null) {
+            SettingParams params = Util.parseParams(Util.readStorageParams(this));
+            mVoiceEntity.setParams(params);
+        }
+        super.onResume();
     }
 
     /**

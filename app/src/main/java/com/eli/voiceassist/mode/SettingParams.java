@@ -17,12 +17,12 @@ public final class SettingParams {
         keys.put("普通话", "mandarin");
         keys.put("粤语", "cantonese");
         keys.put("四川话", "lmz");
-        keys.put("小燕", "xiaoyan");
-        keys.put("小宇", "xiaoyu");
-        keys.put("凯瑟琳", "catherine");
-        keys.put("亨利", "henry");
-        keys.put("小梅", "vixm");
-        keys.put("晓琳", "xiaolin");
+        keys.put("小燕(中文女声)", "xiaoyan");
+        keys.put("小宇(中文男声)", "xiaoyu");
+        keys.put("凯瑟琳(英文女声)", "catherine");
+        keys.put("亨利(英文男声)", "henry");
+        keys.put("小梅(粤语女声)", "vixm");
+        keys.put("晓琳(台湾话女声)", "xiaolin");
     }
 
     private String recognizerLanguage;
@@ -58,7 +58,7 @@ public final class SettingParams {
 
     public void setRecognizerAccent(String recognizerAccent) {
         this.recognizerAccent = recognizerAccent;
-        this.accentDisplay = keys.get(recognizerAccent);
+        this.accentDisplay = findKey(recognizerAccent);
     }
 
     public int getRecognizerBOS() {
@@ -91,7 +91,7 @@ public final class SettingParams {
 
     public void setVoiceName(String voiceName) {
         this.voiceName = voiceName;
-        this.nameDisplay = keys.get(voiceName);
+        this.nameDisplay = findKey(voiceName);
     }
 
     public int getVoiceSpeed() {
@@ -124,7 +124,7 @@ public final class SettingParams {
 
     public void setAccentDisplay(String accentDisplay) {
         this.accentDisplay = accentDisplay;
-        this.recognizerAccent = findKey(accentDisplay);
+        this.recognizerAccent = keys.get(accentDisplay);
     }
 
     public String getNameDisplay() {
@@ -133,7 +133,7 @@ public final class SettingParams {
 
     public void setNameDisplay(String nameDisplay) {
         this.nameDisplay = nameDisplay;
-        this.voiceName = findKey(nameDisplay);
+        this.voiceName = keys.get(nameDisplay);
     }
 
     private String findKey(String value) {

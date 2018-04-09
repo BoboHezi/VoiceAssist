@@ -2,4 +2,4 @@
 <layoutAnimation xmlns:android="http://schemas.android.com/apk/res/android"
     android:delay="30%"
     android:animationOrder="normal"
-    android:animation="@anim/dialog_item_enter"/>
+    android:animation="@anim/dialog_item_enter" />

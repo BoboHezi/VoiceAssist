@@ -1,20 +1,16 @@
-package com.eli.voiceassist.view;
+package com.eli.voiceassist.activity;
 
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import com.eli.voiceassist.R;
 import com.eli.voiceassist.util.Util;
-import com.eli.voiceassist.widget.MyRecyclerAdapter;
+import com.eli.voiceassist.adapter.MyRecyclerAdapter;
 import com.eli.voiceassist.widget.RecordButton;
 
 import java.util.ArrayList;

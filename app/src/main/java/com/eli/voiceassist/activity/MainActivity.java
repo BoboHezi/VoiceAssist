@@ -1,16 +1,11 @@
-package com.eli.voiceassist.view;
+package com.eli.voiceassist.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 
 import com.eli.voiceassist.R;
-import com.eli.voiceassist.mode.AppInfo;
-import com.eli.voiceassist.util.Util;
-
-import java.util.List;
 
 /**
  * Created by zhanbo.zhang on 2018/3/27.
@@ -34,11 +29,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent = null;
         switch (v.getId()) {
             case R.id.voice_recognizer:
-                intent = new Intent(MainActivity.this, VoiceRecognizerActivity.class);
                 break;
 
             case R.id.voice_speak:
-                intent = new Intent(MainActivity.this, VoiceSpeakActivity.class);
                 break;
 
             case R.id.ui_test:

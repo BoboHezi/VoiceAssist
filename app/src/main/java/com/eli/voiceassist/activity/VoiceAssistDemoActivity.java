@@ -1,7 +1,7 @@
-package com.eli.voiceassist.view;
+package com.eli.voiceassist.activity;
 
 import android.Manifest;
-import android.content.res.ColorStateList;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,7 +17,7 @@ import com.eli.voiceassist.mode.AppInfo;
 import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
 import com.eli.voiceassist.util.Util;
-import com.eli.voiceassist.widget.DialogListAdapter;
+import com.eli.voiceassist.adapter.DialogListAdapter;
 import com.eli.voiceassist.widget.RecordButton;
 import com.iflytek.cloud.LexiconListener;
 import com.iflytek.cloud.SpeechError;
@@ -30,24 +30,21 @@ import java.util.Map;
 /**
  * Created by zhanbo.zhang on 2018/3/28.
  */
-public class VoiceAssistDemoActivity extends AppCompatActivity implements View.OnClickListener {
+public class VoiceAssistDemoActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
 
     private static final String TAG = "elifli";
-    private static final int RECORDING_COLOR = 0xff1a562e;
-    private static final int SILENT_COLOR = 0xff0a5a64;
 
-    private RecordButton voiceRecode;
-    private ListView dialogList;
+    private RecordButton mVoiceRecode;
+    private ListView mDialogListView;
 
     private boolean isRecording = false;
 
-    private List<Map<String, Object>> dialogs;
-    private DialogListAdapter dialogListAdapter;
+    private VoiceEntity mVoiceEntity;
+    private List<Map<String, Object>> mDialogs;
+    private DialogListAdapter mDialogListAdapter;
 
-    private VoiceEntity voiceEntity;
-
-    private static List<ContactInfo> contacts;
-    private static List<AppInfo> apps;
+    private static List<ContactInfo> mContacts;
+    private static List<AppInfo> mApps;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,21 +60,21 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
      * initial the voice entity(content SpeechRecognizer, SpeechSynthesizer, AIUIAgent)
      */
     private void initVoiceAssist() {
-        voiceEntity = VoiceEntity.getInstance(this);
-        voiceEntity.setOnVoiceEventListener(voiceEventListener);
+        mVoiceEntity = VoiceEntity.getInstance(this);
+        mVoiceEntity.setOnVoiceEventListener(voiceEventListener);
     }
 
     /**
-     * get contacts and installed App info(async)
+     * get mContacts and installed App info(async)
      */
     private void readInfo() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                apps = Util.readAppList(VoiceAssistDemoActivity.this);
-                contacts = Util.readContacts(VoiceAssistDemoActivity.this);
-                if (contacts != null) {
-                    updateContact(contacts);
+                mApps = Util.readAppList(VoiceAssistDemoActivity.this);
+                mContacts = Util.readContacts(VoiceAssistDemoActivity.this);
+                if (mContacts != null) {
+                    updateContact(mContacts);
                 }
             }
         }).start();
@@ -87,29 +84,30 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
      * initial layout
      */
     private void initialView() {
-        voiceRecode = (RecordButton) findViewById(R.id.voice_recode);
-        voiceRecode.setOnClickListener(this);
-        dialogList = (ListView) findViewById(R.id.dialog_list);
-        dialogs = new ArrayList<>();
-        dialogListAdapter = new DialogListAdapter(this, dialogs);
-        dialogList.setAdapter(dialogListAdapter);
-        dialogList.setOnScrollListener(scrollListener);
+        mVoiceRecode = (RecordButton) findViewById(R.id.voice_recode);
+        mVoiceRecode.setOnClickListener(this);
+        mVoiceRecode.setOnLongClickListener(this);
+        mDialogListView = (ListView) findViewById(R.id.dialog_list);
+        mDialogs = new ArrayList<>();
+        mDialogListAdapter = new DialogListAdapter(this, mDialogs);
+        mDialogListView.setAdapter(mDialogListAdapter);
+        mDialogListView.setOnScrollListener(scrollListener);
     }
 
     AbsListView.OnScrollListener scrollListener = new AbsListView.OnScrollListener() {
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState) {
             if (scrollState == SCROLL_STATE_IDLE)
-                dialogListAdapter.setAnimation(true);
+                mDialogListAdapter.setAnimation(true);
             else
-                dialogListAdapter.setAnimation(false);
+                mDialogListAdapter.setAnimation(false);
         }
 
         @Override
         public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
             //Log.i(TAG, (firstVisibleItem + visibleItemCount) + "");
             if (firstVisibleItem != 0)
-                dialogListAdapter.setAllAnimation();
+                mDialogListAdapter.setAllAnimation();
         }
     };
 
@@ -119,12 +117,20 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         isRecording = !isRecording;*/
         Log.i(TAG, "isRecording: " + isRecording);
         if (!isRecording) {
-            voiceEntity.startListen();
+            mVoiceEntity.startListen();
+            mVoiceRecode.startBreath();
         } else {
-            voiceEntity.stopListen();
+            mVoiceEntity.stopListen();
+            mVoiceRecode.stopBreath();
         }
         isRecording = !isRecording;
-        voiceRecode.setBackgroundTintList(ColorStateList.valueOf(isRecording ? RECORDING_COLOR : SILENT_COLOR));
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        Intent settingIntent = new Intent(VoiceAssistDemoActivity.this, SettingActivity.class);
+        startActivity(settingIntent);
+        return true;
     }
 
     @Override
@@ -137,9 +143,9 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            contacts = Util.readContacts(VoiceAssistDemoActivity.this);
-                            if (contacts != null) {
-                                updateContact(contacts);
+                            mContacts = Util.readContacts(VoiceAssistDemoActivity.this);
+                            if (mContacts != null) {
+                                updateContact(mContacts);
                             }
                         }
                     }).start();
@@ -172,20 +178,28 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         public void onRecognizeResult(boolean wrong, String result) {
             Log.i(TAG, (wrong ? "Error: " : "") + result);
             showMessage(result, !wrong);
+            if (isRecording) {
+                mVoiceRecode.stopBreath();
+                isRecording = false;
+            }
         }
 
         @Override
         public void onRecognizerStatusChanged(boolean status) {
             Log.i(TAG, (status ? "Begin" : "End") + " Recognizer");
             if (!status) {
-                voiceRecode.stopBreath();
+                mVoiceRecode.stopBreath();
                 isRecording = false;
             }
         }
 
         @Override
         public void onAiuiAnalyserResult(Echo echo) {
-            if (echo != null) {
+            if (echo == null) {
+                showMessage("不好意思，我好像没听懂。。。", false);
+            } else if (echo.getEchoType() == Echo.TYPE_UNKNOWN) {
+                showMessage("不好意思，我好像没听懂。。。", false);
+            } else {
                 Log.i(TAG, "service type: " + echo.getEchoType() +
                         "\ninput text: " + echo.getInputMessage() +
                         "\necho text: " + echo.getEcho() +
@@ -194,8 +208,6 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                         "\nhashCode: " + echo.hashCode()
                 );
                 handleEcho(echo);
-            } else {
-                showMessage("不好意思，我好像没听懂。。。", false);
             }
         }
     };
@@ -221,8 +233,8 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                             number = name;
                         } else {
                             //输入为联系人
-                            if (contacts != null) {
-                                for (ContactInfo contact : contacts) {
+                            if (mContacts != null) {
+                                for (ContactInfo contact : mContacts) {
                                     if (contact.getName().equals(name))
                                         number = contact.getNumber();
                                 }
@@ -253,15 +265,26 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                 case Echo.INTENT_OPEN_APP:
                     String appName = echo.getParams().get(0);
                     Log.i(TAG, "open " + appName);
-                    if (apps != null && apps.size() > 0) {
-                        List<AppInfo> matched = Util.matchApp(appName, apps);
-                        if (matched != null && matched.size() > 0) {
-                            if (matched.size() == 1) {
+                    if (mApps != null && mApps.size() > 0) {
+                        List<AppInfo> matchedApps = Util.matchApp(appName, mApps);
+                        if (matchedApps != null && matchedApps.size() > 0) {
+                            if (matchedApps.size() == 1) {
                                 //find only one matched
                                 showMessage("正在打开" + appName, false);
-                                Util.openAPPWithPackage(this, matched.get(0).getPackageName());
+                                Util.openAPPWithPackage(this, matchedApps.get(0).getPackageName());
                             } else {
                                 //find multi-matched
+                                StringBuilder sb = new StringBuilder("为您找到");
+                                for (int index = 0; index < matchedApps.size(); index++) {
+                                    AppInfo app = matchedApps.get(index);
+                                    sb.append(app.getAppName());
+                                    if (index < matchedApps.size() - 1)
+                                        sb.append(",");
+                                    Log.i(TAG, "Name: " + app.getAppName() + "\tPackage: " + app.getPackageName());
+                                }
+                                sb.append(matchedApps.size());
+                                sb.append("个应用。");
+                                showMessage(sb.toString(), false);
                             }
                         } else {
                             showMessage("您的手机未安装" + appName, false);
@@ -273,7 +296,6 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                     break;
             }
         }
-
     }
 
     /**
@@ -287,22 +309,22 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
             return;
         message = message.replace("\"", "");
         if (message.contains("[")) {
-            int startIndex = message.indexOf("]");
+            int startIndex = message.indexOf("]") + 1;
             int endIndex = message.lastIndexOf("[");
             message = message.substring(startIndex, endIndex);
         }
         Map<String, Object> map = new HashMap<>();
         map.put("message", message);
         map.put("role", isUser);
-        dialogs.add(map);
-        if (dialogs.size() > 50) {
-            dialogs.remove(0);
+        mDialogs.add(map);
+        if (mDialogs.size() > 50) {
+            mDialogs.remove(0);
         }
-        dialogListAdapter.notifyDataSetChanged();
+        mDialogListAdapter.notifyDataSetChanged();
     }
 
     /**
-     * upload user contacts information
+     * upload user mContacts information
      *
      * @param contacts
      */
@@ -313,9 +335,9 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
             sb.append("\n");
         }
         final String contactLexicon = sb.toString();
-        if (voiceEntity != null && !contactLexicon.equals(Util.readStorageContacts(VoiceAssistDemoActivity.this))) {
+        if (mVoiceEntity != null && !contactLexicon.equals(Util.readStorageContacts(VoiceAssistDemoActivity.this))) {
             Log.i(TAG, "update contact");
-            voiceEntity.updateLexicon("contact", contactLexicon, new LexiconListener() {
+            mVoiceEntity.updateLexicon("contact", contactLexicon, new LexiconListener() {
                 @Override
                 public void onLexiconUpdated(String s, SpeechError speechError) {
                     if (speechError == null) {

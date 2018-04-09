@@ -1,8 +1,7 @@
-package com.eli.voiceassist.widget;
+package com.eli.voiceassist.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.eli.voiceassist.R;
-import com.eli.voiceassist.util.Util;
 
 import java.util.List;
 

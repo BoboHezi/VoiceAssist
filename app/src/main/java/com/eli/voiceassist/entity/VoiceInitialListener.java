@@ -4,7 +4,7 @@ import com.iflytek.aiui.AIUIListener;
 import com.iflytek.cloud.InitListener;
 
 /**
- * Created by zhanbo.zhang on 2018/4/3.
+ * Created by zhanbo.zhang on 2018/4/8.
  */
 
 public interface VoiceInitialListener extends InitListener, AIUIListener {

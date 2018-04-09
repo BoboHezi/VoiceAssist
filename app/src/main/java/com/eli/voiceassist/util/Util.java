@@ -17,12 +17,13 @@ import android.os.Handler;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
-
 
 import com.eli.voiceassist.mode.AppInfo;
 import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
+import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.mode.VoiceMessage;
 import com.google.gson.Gson;
 import com.iflytek.aiui.AIUIEvent;
@@ -36,6 +37,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -75,6 +77,20 @@ public class Util {
         VoiceMessage message = gson.fromJson(voiceResult, VoiceMessage.class);
 
         return message.getWord();
+    }
+
+    public static SettingParams parseParams(String value) {
+        if (value == null || TextUtils.isEmpty(value))
+            return null;
+
+        SettingParams params = new SettingParams();
+        try {
+            Gson gson = new Gson();
+            params = gson.fromJson(value, SettingParams.class);
+        } catch (Exception e) {
+        }
+
+        return params;
     }
 
     public static JSONObject getSemanticResult(AIUIEvent event) {
@@ -138,7 +154,7 @@ public class Util {
 
     public static Echo parseEchoMessage(JSONObject echoObject) {
         if (echoObject.isNull("service")) {
-            return null;
+            return new Echo(Echo.TYPE_UNKNOWN, echoObject.optString("text"));
         }
         Echo result = null;
         try {
@@ -272,30 +288,64 @@ public class Util {
         return apps;
     }
 
+    public static void writeStorageParams(Context context, String value) {
+        try {
+            File contactFile = new File(context.getExternalFilesDir(""), "params");
+            writeStorage(contactFile, value);
+        } catch (Exception e) {
+        }
+    }
+
     public static void writeStorageContacts(Context context, String contactLexicon) {
         try {
             File contactFile = new File(context.getExternalFilesDir(""), "contacts");
-            FileWriter fw = new FileWriter(contactFile);
-            fw.write(contactLexicon);
+            writeStorage(contactFile, contactLexicon);
+        } catch (Exception e) {
+        }
+    }
+
+    private static void writeStorage(File file, String value) {
+        try {
+            FileWriter fw = new FileWriter(file);
+            fw.write(value);
             fw.close();
         } catch (Exception e) {
         }
+    }
+
+    public static String readStorageParams(Context context) {
+        String value = null;
+        try {
+            File contactFile = new File(context.getExternalFilesDir(""), "params");
+            value = readStorage(contactFile);
+        } catch (Exception e) {
+        }
+        return value;
     }
 
     public static String readStorageContacts(Context context) {
         String value = null;
         try {
             File contactFile = new File(context.getExternalFilesDir(""), "contacts");
-            if (contactFile.exists()) {
-                FileReader fr = new FileReader(contactFile);
-                char buffer[] = new char[1024];
-                StringBuilder sb = new StringBuilder();
-                int length;
-                while ((length = fr.read(buffer)) > 0) {
-                    sb.append(buffer, 0, length);
-                }
-                value = sb.toString();
+            value = readStorage(contactFile);
+        } catch (Exception e) {
+        }
+        return value;
+    }
+
+    private static String readStorage(File file) {
+        if (file == null || !file.exists())
+            return "";
+        String value = null;
+        try {
+            FileReader fr = new FileReader(file);
+            char buffer[] = new char[1024];
+            StringBuilder sb = new StringBuilder();
+            int length;
+            while ((length = fr.read(buffer)) > 0) {
+                sb.append(buffer, 0, length);
             }
+            value = sb.toString();
         } catch (Exception e) {
         }
         return value;
@@ -324,11 +374,20 @@ public class Util {
         }
 
         for (AppInfo app : apps) {
-            if (app.getAppName().contains(appName)) {
+            if (app.getAppName().toLowerCase().contains(appName.toLowerCase())) {
                 values.add(app);
             }
         }
 
         return values;
+    }
+
+    public static String getSystemLanguage(Context context) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(Locale.getDefault().getLanguage());
+        sb.append("_");
+        String country = context.getResources().getConfiguration().locale.getCountry();
+        sb.append(country);
+        return sb.toString();
     }
 }

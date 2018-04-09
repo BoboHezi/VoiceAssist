@@ -15,4 +15,14 @@
         <item>call_the_ambulance</item>
         <item>QUERY</item>
     </string-array>
+
+    <string-array name="setting_array">
+        <item>口音</item>
+        <item>前端点</item>
+        <item>后端点</item>
+        <item>是否发声</item>
+        <item>发音人</item>
+        <item>语速</item>
+        <item>音量</item>
+    </string-array>
 </resources>

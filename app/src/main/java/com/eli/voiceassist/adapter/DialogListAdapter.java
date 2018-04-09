@@ -1,4 +1,4 @@
-package com.eli.voiceassist.widget;
+package com.eli.voiceassist.adapter;
 
 import android.content.Context;
 import android.view.Gravity;

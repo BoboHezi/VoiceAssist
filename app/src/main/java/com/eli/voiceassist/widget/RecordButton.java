@@ -8,7 +8,6 @@ import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
@@ -109,7 +108,7 @@ public class RecordButton extends View {
             //Util.playSound(context, R.raw.effect_tick);
             //this.playSoundEffect(SoundEffectConstants.CLICK);
 
-            if (!breath.isBreathing()) {
+            /*if (!breath.isBreathing()) {
                 startBreath();
                 if (listener != null)
                     listener.onBreathStateChanged(OnBreathListener.BREATH_STATE_START);
@@ -117,7 +116,7 @@ public class RecordButton extends View {
                 stopBreath();
                 if (listener != null)
                     listener.onBreathStateChanged(OnBreathListener.BREATH_STATE_STOP);
-            }
+            }*/
         }
         return super.onTouchEvent(event);
     }

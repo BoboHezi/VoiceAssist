@@ -6,7 +6,8 @@ import java.util.List;
 /**
  * Created by zhanbo.zhang on 2018/3/28.
  */
-public class Echo {
+public final class Echo {
+    public static final int TYPE_UNKNOWN = 0;
     public static final int TYPE_OPEN_QA = 1;
     public static final int TYPE_SKILL = 2;
     public static final int TYPE_OPEN_SKILL = 3;

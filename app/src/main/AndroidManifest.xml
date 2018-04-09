@@ -29,25 +29,26 @@
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
-        android:name=".view.VoiceApp"
+        android:name=".activity.VoiceApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.NoActionBar">
-        <activity android:name=".view.MainActivity">
+        android:theme="@style/AppTheme">
+
+        <activity android:name=".activity.MainActivity"></activity>
+
+        <activity
+            android:name=".activity.VoiceAssistDemoActivity"
+            android:theme="@style/VoiceAssistTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".view.VoiceRecognizerActivity" android:label="voice recognizer"></activity>
+        <activity android:name=".activity.SettingActivity"></activity>
 
-        <activity android:name=".view.VoiceSpeakActivity" android:label="voice speak"></activity>
-
-        <activity android:name=".view.VoiceAssistDemoActivity" android:label="voice Assist"></activity>
-
-        <activity android:name=".view.UITestActivity" android:label="UI"></activity>
+        <activity android:name=".activity.UITestActivity" android:label="UI"></activity>
     </application>
 </manifest>

@@ -2,9 +2,11 @@ package com.eli.voiceassist.entity;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.eli.voiceassist.mode.Echo;
+import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.util.Util;
 import com.iflytek.aiui.AIUIAgent;
 import com.iflytek.aiui.AIUIConstant;
@@ -29,29 +31,61 @@ import org.json.JSONObject;
 public final class VoiceEntity implements VoiceInitialListener {
     private static final String TAG = "VoiceEntity";
 
-    private SpeechRecognizer recognizer;
-    private SpeechSynthesizer synthesizer;
-    private AIUIAgent aiuiAgent;
+    private Context context;
 
-    private OnVoiceEventListener onVoiceEventListener;
+    private SpeechRecognizer mRecognizer;
+    private SpeechSynthesizer mSynthesizer;
+    private AIUIAgent mAiuiAgent;
+
+    private SettingParams params;
+
+    private OnVoiceEventListener mOnVoiceEventListener;
 
     private static VoiceEntity instance;
 
+    private boolean speakEnable = false;
     private boolean aiuiEnable = true;
     private boolean isAIUIWakeup = false;
     private boolean isRecording = false;
 
     private VoiceEntity(Context context) {
         Log.i(TAG, "create voice");
-        recognizer = SpeechRecognizer.createRecognizer(context, this);
+        this.context = context;
+        initParams();
+        mRecognizer = SpeechRecognizer.createRecognizer(context, this);
         setRecognizerParam();
-        synthesizer = SpeechSynthesizer.createSynthesizer(context, this);
-        setSynthesizerParam();
-        if (aiuiEnable) {
-            aiuiAgent = AIUIAgent.createAgent(context, Util.getAIUIParams(context), this);
-            aiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_START, 0, 0, null, null));
-            aiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
+        if (speakEnable) {
+            mSynthesizer = SpeechSynthesizer.createSynthesizer(context, this);
+            setSynthesizerParam();
         }
+        if (aiuiEnable) {
+            mAiuiAgent = AIUIAgent.createAgent(context, Util.getAIUIParams(context), this);
+            mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_START, 0, 0, null, null));
+            mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
+        }
+    }
+
+    private void initParams() {
+        String params = Util.readStorageParams(context);
+        if (params == null || TextUtils.isEmpty(params)) {
+            this.params = new SettingParams();
+            String language = Util.getSystemLanguage(context);
+            if (!language.equalsIgnoreCase("en_us") && !language.equalsIgnoreCase("zh_cn")) {
+                language = "en_us";
+            }
+            this.params.setRecognizerLanguage(language);
+            this.params.setVoiceVolume(50);
+            this.params.setVoiceSpeed(50);
+            this.params.setVoiceName("xiaoyan");
+            this.params.setSpeakEnable(true);
+            this.params.setRecognizerEOS(1000);
+            this.params.setRecognizerBOS(4000);
+            this.params.setRecognizerAccent("mandarin");
+            Util.writeStorageParams(context, this.params.toString());
+            return;
+        }
+
+        this.params = Util.parseParams(params);
     }
 
     public static VoiceEntity getInstance(Context context) {
@@ -61,34 +95,34 @@ public final class VoiceEntity implements VoiceInitialListener {
     }
 
     /**
-     * set recognizer listener
+     * set mRecognizer listener
      *
      * @param listener
      */
     public void setOnVoiceEventListener(OnVoiceEventListener listener) {
-        this.onVoiceEventListener = listener;
+        this.mOnVoiceEventListener = listener;
     }
 
     /**
-     * start recognizer process
+     * start mRecognizer process
      */
     public void startListen() {
-        if (recognizer == null)
+        if (mRecognizer == null)
             return;
 
-        int ret = recognizer.startListening(recognizerListener);
+        int ret = mRecognizer.startListening(recognizerListener);
         if (ret != ErrorCode.SUCCESS) {
             Log.i(TAG, "Listen Error.");
         }
     }
 
     /**
-     * stop recognizer process
+     * stop mRecognizer process
      */
     public void stopListen() {
-        if (recognizer == null)
+        if (mRecognizer == null)
             return;
-        recognizer.stopListening();
+        mRecognizer.stopListening();
         isRecording = false;
     }
 
@@ -96,15 +130,41 @@ public final class VoiceEntity implements VoiceInitialListener {
      * stop the speak process
      */
     public void stopSpeak() {
+        if (mSynthesizer != null && mSynthesizer.isSpeaking()) {
+            mSynthesizer.stopSpeaking();
+        }
+    }
 
+    /**
+     * set do we need speak loud
+     *
+     * @param enable
+     */
+    public void setSpeakEnable(boolean enable) {
+        this.speakEnable = enable;
+        if (speakEnable && mSynthesizer == null) {
+            mSynthesizer = SpeechSynthesizer.createSynthesizer(context, this);
+            setSynthesizerParam();
+        }
+    }
+
+    public SettingParams getParams() {
+        return this.params;
     }
 
     public boolean isRecording() {
         return this.isRecording;
     }
 
+    /**
+     * update use Lexicon
+     *
+     * @param type
+     * @param lexicon
+     * @param listener
+     */
     public void updateLexicon(String type, String lexicon, LexiconListener listener) {
-        recognizer.updateLexicon(type, lexicon, listener);
+        mRecognizer.updateLexicon(type, lexicon, listener);
     }
 
     /**
@@ -113,7 +173,9 @@ public final class VoiceEntity implements VoiceInitialListener {
      * @param message
      */
     public void speakMessage(String message) {
-        int ret = synthesizer.startSpeaking(message, synthesizerListener);
+        if (!speakEnable || mSynthesizer == null)
+            return;
+        int ret = mSynthesizer.startSpeaking(message, synthesizerListener);
         if (ret != ErrorCode.SUCCESS) {
             Log.i(TAG, "Synthesizer Error: " + ret);
         }
@@ -126,7 +188,7 @@ public final class VoiceEntity implements VoiceInitialListener {
      */
     private void sendAIUIMessage(String message) {
         AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, "data_type=text", message.getBytes());
-        aiuiAgent.sendMessage(msg);
+        mAiuiAgent.sendMessage(msg);
     }
 
 
@@ -154,23 +216,15 @@ public final class VoiceEntity implements VoiceInitialListener {
                 if (semanticResult != null && semanticResult.length() != 0) {
                     Log.i(TAG, "Analyse Result: " + semanticResult.toString());
                     Echo echo = Util.parseEchoMessage(semanticResult);
-                    if (onVoiceEventListener != null)
-                        onVoiceEventListener.onAiuiAnalyserResult(echo);
-                    /*if (echo != null) {
-                        Log.i(TAG, "service type: " + echo.getEchoType() +
-                                "\ninput text: " + echo.getInputMessage() +
-                                "\necho text: " + echo.getEcho() +
-                                "\nintent: " + echo.getIntent() +
-                                "\nparams: " + echo.getParams().toString()
-                        );
-                    }*/
+                    if (mOnVoiceEventListener != null)
+                        mOnVoiceEventListener.onAiuiAnalyserResult(echo);
                 }
                 break;
         }
     }
 
     /**
-     * speech recognizer initial listener
+     * speech mRecognizer initial listener
      *
      * @param i initial result
      */
@@ -182,32 +236,32 @@ public final class VoiceEntity implements VoiceInitialListener {
     }
 
     /**
-     * recognizer result listener
+     * mRecognizer result listener
      */
     private RecognizerListener recognizerListener = new RecognizerListener() {
         @Override
         public void onVolumeChanged(int i, byte[] bytes) {
-            if (onVoiceEventListener != null)
-                onVoiceEventListener.onVolumeChanged(i);
+            if (mOnVoiceEventListener != null)
+                mOnVoiceEventListener.onVolumeChanged(i);
         }
 
         @Override
         public void onBeginOfSpeech() {
             Log.i(TAG, "Begin Of Speech");
-            if (onVoiceEventListener != null) {
-                onVoiceEventListener.onRecognizerStatusChanged(true);
+            if (mOnVoiceEventListener != null) {
+                mOnVoiceEventListener.onRecognizerStatusChanged(true);
                 isRecording = true;
                 //当aiui设置可用并且处于sleep状态, 唤醒aiui
-                if (aiuiEnable && aiuiAgent != null && !isAIUIWakeup)
-                    aiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
+                if (aiuiEnable && mAiuiAgent != null && !isAIUIWakeup)
+                    mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
             }
         }
 
         @Override
         public void onEndOfSpeech() {
             Log.i(TAG, "End Of Speech");
-            if (onVoiceEventListener != null) {
-                onVoiceEventListener.onRecognizerStatusChanged(false);
+            if (mOnVoiceEventListener != null) {
+                mOnVoiceEventListener.onRecognizerStatusChanged(false);
                 isRecording = false;
             }
         }
@@ -216,8 +270,8 @@ public final class VoiceEntity implements VoiceInitialListener {
         public void onResult(RecognizerResult recognizerResult, boolean b) {
             String result = Util.parseVoice(recognizerResult.getResultString());
             Log.i(TAG, "Recognizer Result: " + result);
-            if (onVoiceEventListener != null)
-                onVoiceEventListener.onRecognizeResult(false, result);
+            if (mOnVoiceEventListener != null)
+                mOnVoiceEventListener.onRecognizeResult(false, result);
             if (aiuiEnable && isAIUIWakeup && result != null && result.length() > 0)
                 sendAIUIMessage(result);
         }
@@ -226,8 +280,8 @@ public final class VoiceEntity implements VoiceInitialListener {
         public void onError(SpeechError speechError) {
             String errorMessage = speechError.getPlainDescription(false);
             Log.i(TAG, "Speech Recognizer Error: " + errorMessage);
-            if (onVoiceEventListener != null)
-                onVoiceEventListener.onRecognizeResult(true, errorMessage);
+            if (mOnVoiceEventListener != null)
+                mOnVoiceEventListener.onRecognizeResult(true, errorMessage);
         }
 
         @Override
@@ -236,7 +290,7 @@ public final class VoiceEntity implements VoiceInitialListener {
     };
 
     /**
-     * voice synthesizer listener
+     * voice mSynthesizer listener
      */
     private SynthesizerListener synthesizerListener = new SynthesizerListener() {
         @Override
@@ -269,51 +323,51 @@ public final class VoiceEntity implements VoiceInitialListener {
     };
 
     /**
-     * set params for voice recognizer
+     * set params for voice mRecognizer
      */
     private void setRecognizerParam() {
-        if (recognizer == null)
+        if (mRecognizer == null)
             return;
         //清空所以参数
-        recognizer.setParameter(SpeechConstant.PARAMS, null);
+        mRecognizer.setParameter(SpeechConstant.PARAMS, null);
         //设置听写引擎
-        recognizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+        mRecognizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
         //设置返回结果格式
-        recognizer.setParameter(SpeechConstant.RESULT_TYPE, "json");
-        //设置语言
-        recognizer.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
-        //设置发音
-        recognizer.setParameter(SpeechConstant.ACCENT, "mandarin");
-        //设置语音前端点:静音超时时间，即用户多长时间不说话则当做超时处理
-        recognizer.setParameter(SpeechConstant.VAD_BOS, "4000");
-        //设置语音后端点:后端点静音检测时间，即用户停止说话多长时间内即认为不再输入， 自动停止录音
-        recognizer.setParameter(SpeechConstant.VAD_EOS, "1000");
+        mRecognizer.setParameter(SpeechConstant.RESULT_TYPE, "json");
         //设置标点符号 0:无标点 1:有标点
-        recognizer.setParameter(SpeechConstant.ASR_PTT, "0");
+        mRecognizer.setParameter(SpeechConstant.ASR_PTT, "0");
+        //设置语言
+        mRecognizer.setParameter(SpeechConstant.LANGUAGE, params.getRecognizerLanguage());
+        //设置发音
+        mRecognizer.setParameter(SpeechConstant.ACCENT, params.getRecognizerAccent());
+        //设置语音前端点:静音超时时间，即用户多长时间不说话则当做超时处理
+        mRecognizer.setParameter(SpeechConstant.VAD_BOS, params.getRecognizerBOS() + "");
+        //设置语音后端点:后端点静音检测时间，即用户停止说话多长时间内即认为不再输入， 自动停止录音
+        mRecognizer.setParameter(SpeechConstant.VAD_EOS, params.getRecognizerEOS() + "");
     }
 
     /**
-     * set params for voice synthesizer
+     * set params for voice mSynthesizer
      */
     private void setSynthesizerParam() {
-        if (synthesizer == null)
+        if (mSynthesizer == null)
             return;
         //清除所有参数
-        synthesizer.setParameter(SpeechConstant.PARAMS, null);
+        mSynthesizer.setParameter(SpeechConstant.PARAMS, null);
         //设置合成引擎
-        synthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
-        //设置合成发言人
-        synthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoyan");
-        //设置语速
-        synthesizer.setParameter(SpeechConstant.SPEED, "50");
+        mSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
         //设置音调
-        synthesizer.setParameter(SpeechConstant.PITCH, "50");
-        //设置音量
-        synthesizer.setParameter(SpeechConstant.VOLUME, "50");
+        mSynthesizer.setParameter(SpeechConstant.PITCH, "50");
         //设置播放器音频流类型
-        synthesizer.setParameter(SpeechConstant.STREAM_TYPE, "3");
+        mSynthesizer.setParameter(SpeechConstant.STREAM_TYPE, "3");
         //设置播放合成音频打断音乐播放，默认为true
-        synthesizer.setParameter(SpeechConstant.KEY_REQUEST_FOCUS, "true");
+        mSynthesizer.setParameter(SpeechConstant.KEY_REQUEST_FOCUS, "true");
+        //设置合成发言人
+        mSynthesizer.setParameter(SpeechConstant.VOICE_NAME, params.getVoiceName());
+        //设置语速
+        mSynthesizer.setParameter(SpeechConstant.SPEED, params.getVoiceSpeed() + "");
+        //设置音量
+        mSynthesizer.setParameter(SpeechConstant.VOLUME, params.getVoiceVolume() + "");
     }
 
     public interface OnVoiceEventListener {

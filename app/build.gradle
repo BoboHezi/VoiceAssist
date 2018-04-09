@@ -24,10 +24,8 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
     compile 'com.android.support:design:26.0.0-alpha1'
-
     compile files('libs/AIUI.jar')
     compile files('libs/Msc.jar')
     compile files('libs/Sunflower.jar')
-
     compile 'com.google.code.gson:gson:2.2.4'
 }

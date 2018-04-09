@@ -1,6 +1,7 @@
 package com.eli.voiceassist.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,12 @@ public class SettingListAdapter extends BaseAdapter {
     @Override
     public long getItemId(int position) {
         return position;
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        Log.i("elifli", "notifyDataSetChanged");
+        super.notifyDataSetChanged();
     }
 
     @Override

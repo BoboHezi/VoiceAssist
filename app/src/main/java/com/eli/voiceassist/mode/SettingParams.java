@@ -2,19 +2,38 @@ package com.eli.voiceassist.mode;
 
 import com.google.gson.Gson;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by zhanbo.zhang on 2018/4/8.
  */
 
 public final class SettingParams {
 
+    private static Map<String, String> keys = new HashMap<>();
+
+    static {
+        keys.put("普通话", "mandarin");
+        keys.put("粤语", "cantonese");
+        keys.put("四川话", "lmz");
+        keys.put("小燕", "xiaoyan");
+        keys.put("小宇", "xiaoyu");
+        keys.put("凯瑟琳", "catherine");
+        keys.put("亨利", "henry");
+        keys.put("小梅", "vixm");
+        keys.put("晓琳", "xiaolin");
+    }
+
     private String recognizerLanguage;
     private String recognizerAccent;
+    private String accentDisplay;
     private int recognizerBOS;
     private int recognizerEOS;
 
     private boolean speakEnable;
     private String voiceName;
+    private String nameDisplay;
     private int voiceSpeed;
     private int voiceVolume;
 
@@ -39,6 +58,7 @@ public final class SettingParams {
 
     public void setRecognizerAccent(String recognizerAccent) {
         this.recognizerAccent = recognizerAccent;
+        this.accentDisplay = keys.get(recognizerAccent);
     }
 
     public int getRecognizerBOS() {
@@ -71,6 +91,7 @@ public final class SettingParams {
 
     public void setVoiceName(String voiceName) {
         this.voiceName = voiceName;
+        this.nameDisplay = keys.get(voiceName);
     }
 
     public int getVoiceSpeed() {
@@ -95,5 +116,34 @@ public final class SettingParams {
 
     public void setRecognizerLanguage(String recognizerLanguage) {
         this.recognizerLanguage = recognizerLanguage;
+    }
+
+    public String getAccentDisplay() {
+        return accentDisplay;
+    }
+
+    public void setAccentDisplay(String accentDisplay) {
+        this.accentDisplay = accentDisplay;
+        this.recognizerAccent = findKey(accentDisplay);
+    }
+
+    public String getNameDisplay() {
+        return nameDisplay;
+    }
+
+    public void setNameDisplay(String nameDisplay) {
+        this.nameDisplay = nameDisplay;
+        this.voiceName = findKey(nameDisplay);
+    }
+
+    private String findKey(String value) {
+        String key = "";
+        for (Map.Entry<String, String> entry : keys.entrySet()) {
+            if (entry.getValue().equals(value)) {
+                key = entry.getKey();
+                break;
+            }
+        }
+        return key;
     }
 }

@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -19,7 +18,7 @@ import com.eli.voiceassist.R;
  */
 public class CustomSeekBar extends View {
 
-    private static final String TAG = "CustomSeekBar";
+    private static final String TAG = "elifli";
 
     private int eBackColor;
     private int eProgressColor;
@@ -29,11 +28,15 @@ public class CustomSeekBar extends View {
     private int realWidth;
     private int realHeight;
 
+    private int percent;
+
     private int radius = 12;
 
     private float splitX = radius;
 
     private Paint paint;
+
+    OnPercentChangedListener listener;
 
     public CustomSeekBar(Context context) {
         this(context, null);
@@ -61,6 +64,7 @@ public class CustomSeekBar extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         realWidth = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
         realHeight = getMeasuredHeight() - getPaddingTop() - getPaddingBottom();
+        setPercent(percent);
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -95,9 +99,34 @@ public class CustomSeekBar extends View {
         postInvalidate();
 
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            int percent = (int) (((splitX - radius) / (realWidth - 2 * radius)) * 100);
-            Log.i(TAG, "percent: " + percent);
+            percent = (int) (((splitX - radius) / (realWidth - 2 * radius)) * 100);
+            if (listener != null)
+                listener.onPercentChanged(percent);
         }
         return super.onTouchEvent(event);
+    }
+
+    /**
+     * (percent / 100) * (realWidth - 2 * radius) + radius = splitX ;
+     *
+     * @return
+     */
+
+    public int getPercent() {
+        return percent;
+    }
+
+    public void setPercent(int percent) {
+        this.percent = percent;
+        splitX = ((percent * (realWidth - 2 * radius)) / 100) + radius;
+        postInvalidate();
+    }
+
+    public void setListener(OnPercentChangedListener listener) {
+        this.listener = listener;
+    }
+
+    public interface OnPercentChangedListener {
+        void onPercentChanged(int percent);
     }
 }

@@ -12,6 +12,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.eli.voiceassist.R;
+import com.eli.voiceassist.entity.VoiceEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -87,14 +88,14 @@ public class SettingListAdapter extends BaseAdapter {
         if (hideSwitch) {
             group.switchButton.setVisibility(View.GONE);
         } else {
-            group.switchButton.setChecked(data.get(position).get("summary").equals("是"));
+            group.switchButton.setChecked(((String) data.get(position).get("summary")).equalsIgnoreCase(VoiceEntity.positive));
             group.switchButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (listener != null) {
                         listener.onItemClicked(parentView, position);
                     }
-                    group.textSummary.setText(isChecked ? "是" : "否");
+                    group.textSummary.setText(isChecked ? VoiceEntity.positive : VoiceEntity.negative);
                 }
             });
         }

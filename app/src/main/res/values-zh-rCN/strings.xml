@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="setting_array">
+        <item>识别口音(中文)</item>
+        <item>是否发声</item>
+        <item>发言人</item>
+        <item>语速</item>
+        <item>音量</item>
+    </string-array>
+
+    <string-array name="speaker_display_array">
+        <item>小燕(中文女声)</item>
+        <item>小宇(中文男声)</item>
+        <item>凯瑟琳(英文女声)</item>
+        <item>亨利(英文男声)</item>
+        <item>小梅(粤语女声)</item>
+        <item>晓琳(台湾话女声)</item>
+    </string-array>
+
+    <string name="positive">是</string>
+    <string name="negative">否</string>
+    <string name="unknown">不好意思，我好像没听懂。。。</string>
+    <string name="calling">正在为您呼叫</string>
+    <string name="opening">正在打开</string>
+    <string name="founded">为您找到</string>
+    <string name="not_found">您的手机未安装</string>
+    <string name="setting_title">设置</string>
+</resources>

@@ -15,6 +15,7 @@ import android.widget.Switch;
 
 import com.eli.voiceassist.R;
 import com.eli.voiceassist.adapter.SettingListAdapter;
+import com.eli.voiceassist.entity.VoiceEntity;
 import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.util.Util;
 import com.eli.voiceassist.widget.CustomSeekBar;
@@ -44,10 +45,9 @@ public class SettingActivity extends AppCompatActivity {
 
     private int nowSelectIndex;
 
-    private String titles[] = new String[]{"识别口音(中文)", "是否发声", "发音人", "语速", "音量"};
-    private String summarise[] = new String[]{"识别语音口音", "是", "小燕", "50", "50"};
-    private String selectAccent[] = new String[]{"普通话", "粤语", "四川话"};
-    private String selectName[] = new String[]{"小燕", "小宇", "凯瑟琳", "亨利", "小梅", "晓琳"};
+    private String titles[] = VoiceEntity.getSettingTitles();
+    private String selectAccent[] = VoiceEntity.getSelectAccentDisplay();
+    private String selectName[] = VoiceEntity.getSelectSpeakerDisplay();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,7 +72,6 @@ public class SettingActivity extends AppCompatActivity {
 
         itemSelectDialog = new Dialog(this);
         itemSelectDialog.setContentView(R.layout.item_select_dialog);
-        lp = percentSelectDialog.getWindow().getAttributes();
         lp.gravity = Gravity.CENTER;
         itemSelectDialog.getWindow().setAttributes(lp);
 
@@ -80,16 +79,16 @@ public class SettingActivity extends AppCompatActivity {
         selectItemList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String value = "";
+                itemSelectDialog.dismiss();
                 if (nowSelectIndex == 0) {
                     params.setAccentDisplay(selectAccent[position]);
                 } else if (nowSelectIndex == 2) {
                     params.setNameDisplay(selectName[position]);
+                } else {
+                    return;
                 }
-                itemSelectDialog.dismiss();
                 resetLayout(params);
-                Util.writeStorageParams(SettingActivity.this, params.toString());
-                Log.i(TAG, value);
+                VoiceEntity.getInstance(SettingActivity.this).setParams(params);
             }
         });
 
@@ -97,14 +96,15 @@ public class SettingActivity extends AppCompatActivity {
         percentBar.setListener(new CustomSeekBar.OnPercentChangedListener() {
             @Override
             public void onPercentChanged(int percent) {
-                if (nowSelectIndex == 3 || nowSelectIndex == 4) {
-                    if (nowSelectIndex == 3)
-                        params.setVoiceSpeed(percent);
-                    else if (nowSelectIndex == 4)
-                        params.setVoiceVolume(percent);
-                    resetLayout(params);
-                    Util.writeStorageParams(SettingActivity.this, params.toString());
+                if (nowSelectIndex == 3) {
+                    params.setVoiceSpeed(percent);
+                } else if (nowSelectIndex == 4) {
+                    params.setVoiceVolume(percent);
+                } else {
+                    return;
                 }
+                resetLayout(params);
+                VoiceEntity.getInstance(SettingActivity.this).setParams(params);
             }
         });
     }
@@ -134,7 +134,7 @@ public class SettingActivity extends AppCompatActivity {
                     Switch switchButton = parent.findViewById(R.id.item_switch);
                     params.setSpeakEnable(switchButton.isChecked());
                     resetLayout(params);
-                    Util.writeStorageParams(SettingActivity.this, params.toString());
+                    VoiceEntity.getInstance(SettingActivity.this).setParams(params);
                     break;
 
                 case 2:
@@ -184,7 +184,7 @@ public class SettingActivity extends AppCompatActivity {
                     break;
 
                 case 1:
-                    map.put("summary", params.isSpeakEnable() ? "是" : "否");
+                    map.put("summary", params.isSpeakEnable() ? VoiceEntity.positive : VoiceEntity.negative);
                     break;
 
                 case 2:
@@ -212,6 +212,12 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        Util.writeStorageParams(SettingActivity.this, params.toString());
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
     }
@@ -223,5 +229,7 @@ public class SettingActivity extends AppCompatActivity {
      * VOICE_NAME   发音人
      * SPEED        语速
      * VOLUME       音量
+     *
+     * /storage/emulated/0/Android/data/com.eli.voiceassist/files/params
      */
 }

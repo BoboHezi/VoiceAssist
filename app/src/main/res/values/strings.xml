@@ -17,12 +17,49 @@
     </string-array>
 
     <string-array name="setting_array">
-        <item>口音</item>
-        <item>前端点</item>
-        <item>后端点</item>
-        <item>是否发声</item>
-        <item>发音人</item>
-        <item>语速</item>
-        <item>音量</item>
+        <item>Recognizer Accent</item>
+        <item>Speak Enable</item>
+        <item>Speaker</item>
+        <item>Voice Speed</item>
+        <item>Voice Volume</item>
     </string-array>
+
+    <string-array name="accent_array">
+        <item>mandarin</item>
+        <item>cantonese</item>
+        <item>lmz</item>
+    </string-array>
+
+    <string-array name="accent_display_array">
+        <item>普通话</item>
+        <item>粤语</item>
+        <item>四川话</item>
+    </string-array>
+
+    <string-array name="speaker_array">
+        <item>xiaoyan</item>
+        <item>xiaoyu</item>
+        <item>catherine</item>
+        <item>henry</item>
+        <item>vixm</item>
+        <item>xiaolin</item>
+    </string-array>
+
+    <string-array name="speaker_display_array">
+        <item>Xiaoyan(Chinese girl)</item>
+        <item>Xiaoyu(Chinese boy)</item>
+        <item>Catherine(English girl)</item>
+        <item>Henry(English boy)</item>
+        <item>Xiaomei(Cantonese girl)</item>
+        <item>Xiaolin(Taiwanese girl)</item>
+    </string-array>
+
+    <string name="positive">Yes</string>
+    <string name="negative">No</string>
+    <string name="unknown">Sorry,I don`t seem to understand you</string>
+    <string name="calling">Calling</string>
+    <string name="opening">Opening</string>
+    <string name="founded">Founded</string>
+    <string name="not_found">Not found</string>
+    <string name="setting_title">Setting</string>
 </resources>

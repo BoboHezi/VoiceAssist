@@ -12,13 +12,12 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 
 import com.eli.voiceassist.R;
+import com.eli.voiceassist.adapter.DialogListAdapter;
 import com.eli.voiceassist.entity.VoiceEntity;
 import com.eli.voiceassist.mode.AppInfo;
 import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
-import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.util.Util;
-import com.eli.voiceassist.adapter.DialogListAdapter;
 import com.eli.voiceassist.widget.RecordButton;
 import com.iflytek.cloud.LexiconListener;
 import com.iflytek.cloud.SpeechError;
@@ -34,8 +33,6 @@ import java.util.Map;
 public class VoiceAssistDemoActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
 
     private static final String TAG = "elifli";
-
-    private static final int CODE_RESULT_SETTING = 1;
 
     private RecordButton mVoiceRecode;
     private ListView mDialogListView;
@@ -57,15 +54,6 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         Util.permissionRequest(this);
         initVoiceAssist();
         readInfo();
-    }
-
-    @Override
-    protected void onResume() {
-        if (mVoiceEntity != null) {
-            SettingParams params = Util.parseParams(Util.readStorageParams(this));
-            mVoiceEntity.setParams(params);
-        }
-        super.onResume();
     }
 
     /**
@@ -146,6 +134,13 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        mVoiceEntity.stopListen();
+        mVoiceEntity.stopSpeak();
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         int index = 0;
@@ -207,10 +202,9 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
 
         @Override
         public void onAiuiAnalyserResult(Echo echo) {
-            if (echo == null) {
-                showMessage("不好意思，我好像没听懂。。。", false);
-            } else if (echo.getEchoType() == Echo.TYPE_UNKNOWN) {
-                showMessage("不好意思，我好像没听懂。。。", false);
+            if (echo == null || echo.getEchoType() == Echo.TYPE_UNKNOWN) {
+                showMessage(VoiceEntity.answerUnKnown, false);
+                mVoiceEntity.speakMessage(VoiceEntity.answerUnKnown);
             } else {
                 Log.i(TAG, "service type: " + echo.getEchoType() +
                         "\ninput text: " + echo.getInputMessage() +
@@ -233,6 +227,7 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         if (echo.getEchoType() == Echo.TYPE_OPEN_QA) {
             String echoMessage = echo.getEcho();
             showMessage(echoMessage, false);
+            mVoiceEntity.speakMessage(echoMessage);
         } else {
             switch (echo.getIntent()) {
                 case Echo.INTENT_DIAL:
@@ -253,10 +248,11 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                             }
                         }
                         if (number != null) {
-                            showMessage("正在为您呼叫" + name, false);
+                            showMessage(VoiceEntity.answerCalling + name, false);
                             Util.startDial(this, number);
                         } else {
                             showMessage(echo.getEcho(), false);
+                            mVoiceEntity.speakMessage(echo.getEcho());
                         }
                     }
                     break;
@@ -264,6 +260,7 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                 case Echo.INTENT_QUERY:
                     String echoMessage = echo.getEcho();
                     showMessage(echoMessage, false);
+                    mVoiceEntity.speakMessage(echoMessage);
                     break;
 
                 case Echo.INTENT_RANDOM_SONG:
@@ -282,11 +279,13 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                         if (matchedApps != null && matchedApps.size() > 0) {
                             if (matchedApps.size() == 1) {
                                 //find only one matched
-                                showMessage("正在打开" + appName, false);
+                                String msg = VoiceEntity.answerOpen + appName;
+                                showMessage(msg, false);
+                                mVoiceEntity.speakMessage(msg);
                                 Util.openAPPWithPackage(this, matchedApps.get(0).getPackageName());
                             } else {
                                 //find multi-matched
-                                StringBuilder sb = new StringBuilder("为您找到");
+                                StringBuilder sb = new StringBuilder(VoiceEntity.answerFound);
                                 for (int index = 0; index < matchedApps.size(); index++) {
                                     AppInfo app = matchedApps.get(index);
                                     sb.append(app.getAppName());
@@ -294,12 +293,13 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                                         sb.append(",");
                                     Log.i(TAG, "Name: " + app.getAppName() + "\tPackage: " + app.getPackageName());
                                 }
-                                sb.append(matchedApps.size());
-                                sb.append("个应用。");
                                 showMessage(sb.toString(), false);
+                                mVoiceEntity.speakMessage(sb.toString());
                             }
                         } else {
-                            showMessage("您的手机未安装" + appName, false);
+                            String msg = VoiceEntity.answerNotFound + appName;
+                            showMessage(msg, false);
+                            mVoiceEntity.speakMessage(msg);
                         }
                     }
                     break;

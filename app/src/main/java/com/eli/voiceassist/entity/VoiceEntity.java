@@ -4,7 +4,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.content.res.Resources;
 
+import com.eli.voiceassist.R;
 import com.eli.voiceassist.mode.Echo;
 import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.util.Util;
@@ -44,36 +46,65 @@ public final class VoiceEntity implements VoiceInitialListener {
     private static VoiceEntity instance;
 
     private boolean speakEnable = true;
-    private boolean aiuiEnable = true;
     private boolean isAIUIWakeup = false;
     private boolean isRecording = false;
+
+    private static String settingTitles[];
+    private static String selectAccent[];
+    private static String selectAccentDisplay[];
+    private static String selectSpeaker[];
+    private static String selectSpeakerDisplay[];
+    public static String systemLanguage = "en_us";
+    public static String positive;
+    public static String negative;
+    public static String answerUnKnown;
+    public static String answerCalling;
+    public static String answerOpen;
+    public static String answerFound;
+    public static String answerNotFound;
 
     private VoiceEntity(Context context) {
         Log.i(TAG, "create voice");
         this.context = context;
-        setParams();
+
+        initData();
+        initParams();
         mRecognizer = SpeechRecognizer.createRecognizer(context, this);
         setRecognizerParam(params);
-        if (speakEnable) {
-            mSynthesizer = SpeechSynthesizer.createSynthesizer(context, this);
-            setSynthesizerParam(params);
-        }
-        if (aiuiEnable) {
-            mAiuiAgent = AIUIAgent.createAgent(context, Util.getAIUIParams(context), this);
-            mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_START, 0, 0, null, null));
-            mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
+        mSynthesizer = SpeechSynthesizer.createSynthesizer(context, this);
+        setSynthesizerParam(params);
+        mAiuiAgent = AIUIAgent.createAgent(context, Util.getAIUIParams(context), this);
+        mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_START, 0, 0, null, null));
+        mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
+    }
+
+    private void initData() {
+        Resources resources = context.getResources();
+        settingTitles = resources.getStringArray(R.array.setting_array);
+        selectAccent = resources.getStringArray(R.array.accent_array);
+        selectAccentDisplay = resources.getStringArray(R.array.accent_display_array);
+        selectSpeaker = resources.getStringArray(R.array.speaker_array);
+        selectSpeakerDisplay = resources.getStringArray(R.array.speaker_display_array);
+
+        positive = resources.getString(R.string.positive);
+        negative = resources.getString(R.string.negative);
+        answerUnKnown = resources.getString(R.string.unknown);
+        answerCalling = resources.getString(R.string.calling);
+        answerOpen = resources.getString(R.string.opening);
+        answerFound = resources.getString(R.string.founded);
+        answerNotFound = resources.getString(R.string.not_found);
+
+        systemLanguage = Util.getSystemLanguage(context);
+        if (!systemLanguage.equalsIgnoreCase("en_us") && !systemLanguage.equalsIgnoreCase("zh_cn")) {
+            systemLanguage = "en_us";
         }
     }
 
-    private void setParams() {
+    private void initParams() {
         String params = Util.readStorageParams(context);
         if (params == null || TextUtils.isEmpty(params)) {
             this.params = new SettingParams();
-            String language = Util.getSystemLanguage(context);
-            if (!language.equalsIgnoreCase("en_us") && !language.equalsIgnoreCase("zh_cn")) {
-                language = "en_us";
-            }
-            this.params.setRecognizerLanguage(language);
+            this.params.setRecognizerLanguage(systemLanguage);
             this.params.setVoiceVolume(50);
             this.params.setVoiceSpeed(50);
             this.params.setVoiceName("xiaoyan");
@@ -82,10 +113,11 @@ public final class VoiceEntity implements VoiceInitialListener {
             this.params.setRecognizerBOS(4000);
             this.params.setRecognizerAccent("mandarin");
             Util.writeStorageParams(context, this.params.toString());
-            return;
+        } else {
+            this.params = Util.parseParams(params);
+            this.params.setRecognizerLanguage(systemLanguage);
         }
-
-        this.params = Util.parseParams(params);
+        this.speakEnable = this.params.isSpeakEnable();
     }
 
     public static VoiceEntity getInstance(Context context) {
@@ -260,7 +292,7 @@ public final class VoiceEntity implements VoiceInitialListener {
                 mOnVoiceEventListener.onRecognizerStatusChanged(true);
                 isRecording = true;
                 //当aiui设置可用并且处于sleep状态, 唤醒aiui
-                if (aiuiEnable && mAiuiAgent != null && !isAIUIWakeup)
+                if (mAiuiAgent != null && !isAIUIWakeup)
                     mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
             }
         }
@@ -280,7 +312,7 @@ public final class VoiceEntity implements VoiceInitialListener {
             Log.i(TAG, "Recognizer Result: " + result);
             if (mOnVoiceEventListener != null)
                 mOnVoiceEventListener.onRecognizeResult(false, result);
-            if (aiuiEnable && isAIUIWakeup && result != null && result.length() > 0)
+            if (isAIUIWakeup && result != null && result.length() > 0)
                 sendAIUIMessage(result);
         }
 
@@ -376,6 +408,26 @@ public final class VoiceEntity implements VoiceInitialListener {
         mSynthesizer.setParameter(SpeechConstant.SPEED, params.getVoiceSpeed() + "");
         //设置音量
         mSynthesizer.setParameter(SpeechConstant.VOLUME, params.getVoiceVolume() + "");
+    }
+
+    public static String[] getSettingTitles() {
+        return settingTitles;
+    }
+
+    public static String[] getSelectAccent() {
+        return selectAccent;
+    }
+
+    public static String[] getSelectAccentDisplay() {
+        return selectAccentDisplay;
+    }
+
+    public static String[] getSelectSpeaker() {
+        return selectSpeaker;
+    }
+
+    public static String[] getSelectSpeakerDisplay() {
+        return selectSpeakerDisplay;
     }
 
     public interface OnVoiceEventListener {

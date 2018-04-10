@@ -1,5 +1,6 @@
 package com.eli.voiceassist.mode;
 
+import com.eli.voiceassist.entity.VoiceEntity;
 import com.google.gson.Gson;
 
 import java.util.HashMap;
@@ -11,18 +12,19 @@ import java.util.Map;
 
 public final class SettingParams {
 
+    private static String selectAccent[] = VoiceEntity.getSelectAccent();
+    private static String selectAccentDisplay[] = VoiceEntity.getSelectAccentDisplay();
+    private static String selectName[] = VoiceEntity.getSelectSpeaker();
+    private static String selectNameDisplay[] = VoiceEntity.getSelectSpeakerDisplay();
     private static Map<String, String> keys = new HashMap<>();
 
     static {
-        keys.put("普通话", "mandarin");
-        keys.put("粤语", "cantonese");
-        keys.put("四川话", "lmz");
-        keys.put("小燕(中文女声)", "xiaoyan");
-        keys.put("小宇(中文男声)", "xiaoyu");
-        keys.put("凯瑟琳(英文女声)", "catherine");
-        keys.put("亨利(英文男声)", "henry");
-        keys.put("小梅(粤语女声)", "vixm");
-        keys.put("晓琳(台湾话女声)", "xiaolin");
+        for (int index = 0; index < selectAccent.length; index++) {
+            keys.put(selectAccent[index], selectAccentDisplay[index]);
+        }
+        for (int index = 0; index < selectName.length; index++) {
+            keys.put(selectName[index], selectNameDisplay[index]);
+        }
     }
 
     private String recognizerLanguage;
@@ -58,7 +60,7 @@ public final class SettingParams {
 
     public void setRecognizerAccent(String recognizerAccent) {
         this.recognizerAccent = recognizerAccent;
-        this.accentDisplay = findKey(recognizerAccent);
+        this.accentDisplay = keys.get(recognizerAccent);
     }
 
     public int getRecognizerBOS() {
@@ -91,7 +93,7 @@ public final class SettingParams {
 
     public void setVoiceName(String voiceName) {
         this.voiceName = voiceName;
-        this.nameDisplay = findKey(voiceName);
+        this.nameDisplay = keys.get(voiceName);
     }
 
     public int getVoiceSpeed() {
@@ -124,7 +126,7 @@ public final class SettingParams {
 
     public void setAccentDisplay(String accentDisplay) {
         this.accentDisplay = accentDisplay;
-        this.recognizerAccent = keys.get(accentDisplay);
+        this.recognizerAccent = findKey(accentDisplay);
     }
 
     public String getNameDisplay() {
@@ -133,7 +135,7 @@ public final class SettingParams {
 
     public void setNameDisplay(String nameDisplay) {
         this.nameDisplay = nameDisplay;
-        this.voiceName = keys.get(nameDisplay);
+        this.voiceName = findKey(nameDisplay);
     }
 
     private String findKey(String value) {

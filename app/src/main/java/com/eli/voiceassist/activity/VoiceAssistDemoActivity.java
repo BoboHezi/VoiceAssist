@@ -17,6 +17,7 @@ import com.eli.voiceassist.entity.VoiceEntity;
 import com.eli.voiceassist.mode.AppInfo;
 import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
+import com.eli.voiceassist.mode.WebSearchResult;
 import com.eli.voiceassist.util.Util;
 import com.eli.voiceassist.widget.RecordButton;
 import com.iflytek.cloud.LexiconListener;
@@ -115,7 +116,6 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
     public void onClick(View v) {
         /*showMessage(Util.randomString(20), isRecording);
         isRecording = !isRecording;*/
-        Log.i(TAG, "isRecording: " + isRecording);
         if (!isRecording) {
             mVoiceEntity.startListen();
             mVoiceRecode.startBreath();
@@ -207,11 +207,12 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                 mVoiceEntity.speakMessage(VoiceEntity.answerUnKnown);
             } else {
                 Log.i(TAG, "service type: " + echo.getEchoType() +
+                        "\nservice: " + echo.getService() +
                         "\ninput text: " + echo.getInputMessage() +
                         "\necho text: " + echo.getEcho() +
                         "\nintent: " + echo.getIntent() +
                         "\nparams: " + echo.getParams().toString() +
-                        "\nhashCode: " + echo.hashCode()
+                        "\nquery: " + echo.getResults().size()
                 );
                 handleEcho(echo);
             }
@@ -231,36 +232,23 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         } else {
             switch (echo.getIntent()) {
                 case Echo.INTENT_DIAL:
-                    if (echo.getParams().size() > 0) {
-                        String name = echo.getParams().get(0);
-                        String number = null;
-                        Log.i(TAG, "call " + name);
-                        if (Util.isNumber(name)) {
-                            //输入为号码
-                            number = name;
-                        } else {
-                            //输入为联系人
-                            if (mContacts != null) {
-                                for (ContactInfo contact : mContacts) {
-                                    if (contact.getName().equals(name))
-                                        number = contact.getNumber();
-                                }
-                            }
-                        }
-                        if (number != null) {
-                            showMessage(VoiceEntity.answerCalling + name, false);
-                            Util.startDial(this, number);
-                        } else {
-                            showMessage(echo.getEcho(), false);
-                            mVoiceEntity.speakMessage(echo.getEcho());
-                        }
-                    }
+                    handleDial(echo);
+                    break;
+
+                case Echo.INTENT_SET:
+                    handleDial(echo);
                     break;
 
                 case Echo.INTENT_QUERY:
-                    String echoMessage = echo.getEcho();
-                    showMessage(echoMessage, false);
-                    mVoiceEntity.speakMessage(echoMessage);
+                    if (echo.getService().equalsIgnoreCase("websearch")) {
+                        if (echo.getResults().size() > 0) {
+                            showSearchResult((WebSearchResult) echo.getResults().get(0));
+                        }
+                    } else {
+                        String echoMessage = echo.getEcho();
+                        showMessage(echoMessage, false);
+                        mVoiceEntity.speakMessage(echoMessage);
+                    }
                     break;
 
                 case Echo.INTENT_RANDOM_SONG:
@@ -310,6 +298,33 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         }
     }
 
+    private void handleDial(Echo echo) {
+        if (echo.getParams().size() > 0) {
+            String name = echo.getParams().get(0);
+            String number = null;
+            Log.i(TAG, "call " + name);
+            if (Util.isNumber(name)) {
+                //输入为号码
+                number = name;
+            } else {
+                //输入为联系人
+                if (mContacts != null) {
+                    for (ContactInfo contact : mContacts) {
+                        if (contact.getName().equals(name))
+                            number = contact.getNumber();
+                    }
+                }
+            }
+            if (number != null) {
+                showMessage(VoiceEntity.answerCalling + name, false);
+                Util.startDial(this, number);
+            } else {
+                showMessage(echo.getEcho(), false);
+                mVoiceEntity.speakMessage(echo.getEcho());
+            }
+        }
+    }
+
     /**
      * display message in dialog
      *
@@ -326,8 +341,23 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
             message = message.substring(startIndex, endIndex);
         }
         Map<String, Object> map = new HashMap<>();
+        map.put("object", false);
         map.put("message", message);
         map.put("role", isUser);
+        mDialogs.add(map);
+        if (mDialogs.size() > 50) {
+            mDialogs.remove(0);
+        }
+        mDialogListAdapter.notifyDataSetChanged();
+    }
+
+    private void showSearchResult(WebSearchResult result) {
+        if (result == null)
+            return;
+        Map<String, Object> map = new HashMap<>();
+        map.put("object", true);
+        map.put("message", result);
+        map.put("role", false);
         mDialogs.add(map);
         if (mDialogs.size() > 50) {
             mDialogs.remove(0);

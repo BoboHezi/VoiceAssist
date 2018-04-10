@@ -1,6 +1,7 @@
 package com.eli.voiceassist.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,10 +9,15 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.Volley;
 import com.eli.voiceassist.R;
+import com.eli.voiceassist.mode.WebSearchResult;
 import com.eli.voiceassist.util.Util;
 
 import java.util.List;
@@ -30,16 +36,30 @@ public class DialogListAdapter extends BaseAdapter {
     private boolean isAllAnimation;
     private boolean isAnimation = true;
     private boolean firstFlag = true;
+    private RequestQueue queue;
+    private ImageLoader loader;
 
     public DialogListAdapter(Context context, List<Map<String, Object>> items) {
         this.items = items;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
         this.animation = AnimationUtils.loadAnimation(context, R.anim.dialog_item_enter);
+        this.queue = Volley.newRequestQueue(context);
+        this.loader = new ImageLoader(queue, new ImageLoader.ImageCache() {
+            @Override
+            public Bitmap getBitmap(String s) {
+                return null;
+            }
+
+            @Override
+            public void putBitmap(String s, Bitmap bitmap) {
+            }
+        });
     }
 
     private class Item {
         public LinearLayout outView;
+        public ImageView img;
         public TextView messageText;
     }
 
@@ -81,6 +101,7 @@ public class DialogListAdapter extends BaseAdapter {
             item = new Item();
             convertView = inflater.inflate(R.layout.message_list_item, null);
             item.outView = convertView.findViewById(R.id.out_view);
+            item.img = convertView.findViewById(R.id.img);
             item.messageText = convertView.findViewById(R.id.message);
             convertView.setTag(item);
         } else {
@@ -101,7 +122,16 @@ public class DialogListAdapter extends BaseAdapter {
             item.outView.setBackgroundResource(R.drawable.message_item_shape_left);
         }
         item.outView.setLayoutParams(lp);
-        item.messageText.setText((String) items.get(position).get("message"));
+        if (!(Boolean) items.get(position).get("object")) {
+            item.img.setVisibility(View.GONE);
+            item.messageText.setText((String) items.get(position).get("message"));
+        } else {
+            item.img.setVisibility(View.VISIBLE);
+            WebSearchResult result = (WebSearchResult) items.get(position).get("message");
+            item.messageText.setText(result.getSummary());
+            ImageLoader.ImageListener listener = ImageLoader.getImageListener(item.img, 0, 0);
+            loader.get(result.getImg(), listener);
+        }
 
         if (isAnimation)
             convertView.startAnimation(animation);

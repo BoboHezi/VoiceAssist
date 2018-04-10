@@ -25,6 +25,7 @@ import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
 import com.eli.voiceassist.mode.SettingParams;
 import com.eli.voiceassist.mode.VoiceMessage;
+import com.eli.voiceassist.mode.WebSearchResult;
 import com.google.gson.Gson;
 import com.iflytek.aiui.AIUIEvent;
 
@@ -75,7 +76,8 @@ public class Util {
     public static String parseVoice(String voiceResult) {
         Gson gson = new Gson();
         VoiceMessage message = gson.fromJson(voiceResult, VoiceMessage.class);
-
+        if (message == null)
+            return "";
         return message.getWord();
     }
 
@@ -156,50 +158,61 @@ public class Util {
         if (echoObject.isNull("service")) {
             return new Echo(Echo.TYPE_UNKNOWN, echoObject.optString("text"));
         }
-        Echo result = null;
+        Echo value = null;
         try {
             String service = echoObject.optString("service");
             //设置类型
             if (service.equals("openQA")) {
                 //问答
-                result = new Echo(Echo.TYPE_OPEN_QA);
+                value = new Echo(Echo.TYPE_OPEN_QA);
             } else if (service.contains(Echo.AIUI_CUSTOM_MARK)) {
                 //技能
-                result = new Echo(Echo.TYPE_SKILL);
+                value = new Echo(Echo.TYPE_SKILL);
             } else {
                 //开放技能
-                result = new Echo(Echo.TYPE_OPEN_SKILL);
+                value = new Echo(Echo.TYPE_OPEN_SKILL);
             }
-            result.setService(service);
+            value.setService(service);
             //设置输入信息
-            result.setInputMessage(echoObject.optString("text"));
+            value.setInputMessage(echoObject.optString("text"));
             //设置回应信息
             if (!echoObject.isNull("answer")) {
                 JSONObject answer = echoObject.getJSONObject("answer");
                 if (answer != null) {
-                    result.setEchoMessage(answer.optString("text"));
+                    value.setEchoMessage(answer.optString("text"));
                 }
             }
             //设置意图
-            if (result.getEchoType() != Echo.TYPE_OPEN_QA && !echoObject.isNull("semantic")) {
+            if (value.getEchoType() != Echo.TYPE_OPEN_QA && !echoObject.isNull("semantic")) {
                 JSONObject semantic = echoObject.getJSONArray("semantic").getJSONObject(0);
                 String intent = semantic.optString("intent");
-                result.setIntent(intent);
+                value.setIntent(intent);
 
                 //设置参数
                 if (!semantic.isNull("slots")) {
                     JSONArray slots = semantic.getJSONArray("slots");
                     for (int i = 0; i < slots.length(); i++) {
                         JSONObject slot = slots.getJSONObject(i);
-                        String value = slot.optString("value");
-                        result.addParam(value);
+                        String param = slot.optString("value");
+                        value.addParam(param);
                     }
                 }
+            }
+            if (service.equalsIgnoreCase("websearch")) {
+                JSONArray results = echoObject.getJSONObject("data").getJSONArray("result");
+                List<Object> searchResults = new ArrayList<>();
+                for (int index = 0; index < results.length(); index++) {
+                    JSONObject object = results.getJSONObject(index);
+                    Gson gson = new Gson();
+                    WebSearchResult result = gson.fromJson(object.toString(), WebSearchResult.class);
+                    searchResults.add(result);
+                }
+                value.setResults(searchResults);
             }
         } catch (Exception e) {
             Log.i(TAG, e.getMessage());
         }
-        return result;
+        return value;
     }
 
     public static List<ContactInfo> readContacts(Context context) {

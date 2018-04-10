@@ -94,7 +94,7 @@ public final class VoiceEntity implements VoiceInitialListener {
         answerFound = resources.getString(R.string.founded);
         answerNotFound = resources.getString(R.string.not_found);
 
-        systemLanguage = Util.getSystemLanguage(context);
+        systemLanguage = Util.getSystemLanguage(context).toLowerCase();
         if (!systemLanguage.equalsIgnoreCase("en_us") && !systemLanguage.equalsIgnoreCase("zh_cn")) {
             systemLanguage = "en_us";
         }
@@ -112,12 +112,13 @@ public final class VoiceEntity implements VoiceInitialListener {
             this.params.setRecognizerEOS(1000);
             this.params.setRecognizerBOS(4000);
             this.params.setRecognizerAccent("mandarin");
-            Util.writeStorageParams(context, this.params.toString());
         } else {
             this.params = Util.parseParams(params);
             this.params.setRecognizerLanguage(systemLanguage);
         }
+        this.params.setVoiceName(this.params.getVoiceName());
         this.speakEnable = this.params.isSpeakEnable();
+        Util.writeStorageParams(context, this.params.toString());
     }
 
     public static VoiceEntity getInstance(Context context) {
@@ -308,8 +309,10 @@ public final class VoiceEntity implements VoiceInitialListener {
 
         @Override
         public void onResult(RecognizerResult recognizerResult, boolean b) {
+            if (b)
+                return;
+            Log.i(TAG, "Recognizer Result: " + recognizerResult.getResultString());
             String result = Util.parseVoice(recognizerResult.getResultString());
-            Log.i(TAG, "Recognizer Result: " + result);
             if (mOnVoiceEventListener != null)
                 mOnVoiceEventListener.onRecognizeResult(false, result);
             if (isAIUIWakeup && result != null && result.length() > 0)
@@ -384,6 +387,15 @@ public final class VoiceEntity implements VoiceInitialListener {
         mRecognizer.setParameter(SpeechConstant.VAD_BOS, params.getRecognizerBOS() + "");
         //设置语音后端点:后端点静音检测时间，即用户停止说话多长时间内即认为不再输入， 自动停止录音
         mRecognizer.setParameter(SpeechConstant.VAD_EOS, params.getRecognizerEOS() + "");
+
+        Log.i(TAG, "Language: " + systemLanguage);
+        if (systemLanguage.equalsIgnoreCase("en_us")) {
+            mRecognizer.setParameter(SpeechConstant.ASR_SCH, "0");
+            mRecognizer.setParameter(SpeechConstant.ADD_CAP, "translate");
+            mRecognizer.setParameter(SpeechConstant.TRS_SRC, "its");
+            mRecognizer.setParameter(SpeechConstant.ORI_LANG, "en");
+            mRecognizer.setParameter(SpeechConstant.TRANS_LANG, "cn");
+        }
     }
 
     /**

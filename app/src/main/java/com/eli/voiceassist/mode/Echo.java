@@ -13,6 +13,7 @@ public final class Echo {
     public static final int TYPE_OPEN_SKILL = 3;
 
     public static final String INTENT_DIAL = "DIAL";
+    public static final String INTENT_SET = "SET";
     public static final String INTENT_QUERY = "QUERY";
     public static final String INTENT_DIAL_SOMEONE = "dial_someone";
     public static final String INTENT_CREATE_CONTACT = "create_contact";
@@ -35,6 +36,8 @@ public final class Echo {
     private String intent;
     //参数
     private List<String> params;
+    //结果
+    private List<Object> results = new ArrayList<>();
 
     private Echo() {
     }
@@ -101,5 +104,13 @@ public final class Echo {
 
     public List<String> getParams() {
         return this.params;
+    }
+
+    public List<Object> getResults() {
+        return results;
+    }
+
+    public void setResults(List<Object> results) {
+        this.results = results;
     }
 }

@@ -9,6 +9,8 @@ public class VoiceMessage {
     public ArrayList<WSBean> ws;
 
     public String getWord() {
+        if (ws == null)
+            return "";
         StringBuffer sb = new StringBuffer();
         for (WSBean wsBean : ws) {
             String word = wsBean.cw.get(0).w;

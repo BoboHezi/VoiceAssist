@@ -54,6 +54,24 @@
         <item>Xiaolin(Taiwanese girl)</item>
     </string-array>
 
+    <string-array name="hint_messages">
+        <item>Tap the MICROPHONE to start/stop recognizing</item>
+        <item>try "Open XX"</item>
+        <item>"How`s the weather today"</item>
+        <item>"Call Catherine",Help you to call Catherine</item>
+        <item>Check Flights,Cars,nothing I don`t know</item>
+        <item>"Google XXX"，find out what you want to know</item>
+        <item>Too boring, let me tell you a joke</item>
+        <item>I am a poet，try me</item>
+        <item>I can do translate</item>
+        <item>Long press the MICROPHONE to open Settings</item>
+        <item>You can switch dialects in Settings</item>
+        <item>You can set whether to play the response sound</item>
+        <item>You can set the sound you like</item>
+        <item>You can set the speed and volume</item>
+        <item>When switching speakers, be sure to check with the current system language</item>
+    </string-array>
+
     <string name="positive">Yes</string>
     <string name="negative">No</string>
     <string name="unknown">Sorry,I don`t seem to understand you</string>
@@ -62,4 +80,10 @@
     <string name="founded">Founded</string>
     <string name="not_found">Not found</string>
     <string name="setting_title">Setting</string>
+    <string name="opening_bluetooth">Opening Bluetooth</string>
+    <string name="opened_bluetooth">Bluetooth already opened</string>
+    <string name="not_found_bluetooth">Bluetooth device not found</string>
+    <string name="opening_wifi">Opening Wifi</string>
+    <string name="opened_wifi">Wifi already opened</string>
+    <string name="not_found_wifi">Wifi device not found</string>
 </resources>

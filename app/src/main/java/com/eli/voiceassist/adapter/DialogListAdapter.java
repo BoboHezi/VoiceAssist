@@ -14,12 +14,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.Volley;
 import com.eli.voiceassist.R;
 import com.eli.voiceassist.mode.WebSearchResult;
 import com.eli.voiceassist.util.Util;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +41,7 @@ public class DialogListAdapter extends BaseAdapter {
     private boolean isAnimation = true;
     private boolean firstFlag = true;
     private RequestQueue queue;
-    private ImageLoader loader;
+    private List<Map<String, Bitmap>> images;
 
     public DialogListAdapter(Context context, List<Map<String, Object>> items) {
         this.items = items;
@@ -45,16 +49,7 @@ public class DialogListAdapter extends BaseAdapter {
         this.inflater = LayoutInflater.from(context);
         this.animation = AnimationUtils.loadAnimation(context, R.anim.dialog_item_enter);
         this.queue = Volley.newRequestQueue(context);
-        this.loader = new ImageLoader(queue, new ImageLoader.ImageCache() {
-            @Override
-            public Bitmap getBitmap(String s) {
-                return null;
-            }
-
-            @Override
-            public void putBitmap(String s, Bitmap bitmap) {
-            }
-        });
+        this.images = new ArrayList<>();
     }
 
     private class Item {
@@ -87,7 +82,6 @@ public class DialogListAdapter extends BaseAdapter {
 
     public void setAllAnimation() {
         isAllAnimation = true;
-        //Log.i("elifli", "all");
     }
 
     public void setAnimation(boolean isAnimation) {
@@ -96,10 +90,10 @@ public class DialogListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Item item;
+        final Item item;
         if (convertView == null) {
             item = new Item();
-            convertView = inflater.inflate(R.layout.message_list_item, null);
+            convertView = inflater.inflate(R.layout.dialog_list_item, null);
             item.outView = convertView.findViewById(R.id.out_view);
             item.img = convertView.findViewById(R.id.img);
             item.messageText = convertView.findViewById(R.id.message);
@@ -125,16 +119,41 @@ public class DialogListAdapter extends BaseAdapter {
         if (!(Boolean) items.get(position).get("object")) {
             item.img.setVisibility(View.GONE);
             item.messageText.setText((String) items.get(position).get("message"));
+            if (isAnimation) {
+                convertView.startAnimation(animation);
+            }
         } else {
             item.img.setVisibility(View.VISIBLE);
-            WebSearchResult result = (WebSearchResult) items.get(position).get("message");
+            final WebSearchResult result = (WebSearchResult) items.get(position).get("message");
             item.messageText.setText(result.getSummary());
-            ImageLoader.ImageListener listener = ImageLoader.getImageListener(item.img, 0, 0);
-            loader.get(result.getImg(), listener);
-        }
 
-        if (isAnimation)
-            convertView.startAnimation(animation);
+            Map<String, Bitmap> bitmapMap = null;
+            for (Map<String, Bitmap> map : images) {
+                if (map.containsKey(result.getImg())) {
+                    bitmapMap = map;
+                    break;
+                }
+            }
+
+            if (bitmapMap != null) {
+                item.img.setImageBitmap(bitmapMap.get(result.getImg()));
+            } else {
+                ImageRequest request = new ImageRequest(result.getImg(), new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap bitmap) {
+                        item.img.setImageBitmap(bitmap);
+                        Map<String, Bitmap> map = new HashMap<>();
+                        map.put(result.getImg(), bitmap);
+                        images.add(map);
+                    }
+                }, 0, 0, Bitmap.Config.RGB_565, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                    }
+                });
+                queue.add(request);
+            }
+        }
         /*if (isAnimation) {
             if (!isAllAnimation) {
                 if (position == size - 1) {

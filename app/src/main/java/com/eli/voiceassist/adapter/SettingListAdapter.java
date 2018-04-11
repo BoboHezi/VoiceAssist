@@ -1,7 +1,6 @@
 package com.eli.voiceassist.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +54,6 @@ public class SettingListAdapter extends BaseAdapter {
 
     @Override
     public void notifyDataSetChanged() {
-        Log.i("elifli", "notifyDataSetChanged");
         super.notifyDataSetChanged();
     }
 
@@ -74,12 +72,15 @@ public class SettingListAdapter extends BaseAdapter {
             group = (ItemGroup) convertView.getTag();
         }
 
+        //set image
         int imageID = (Integer) data.get(position).get("image");
         if (imageID != 0)
             group.image.setBackground(context.getDrawable(imageID));
         else
             group.image.setVisibility(View.GONE);
+        //set title
         group.textTitle.setText((String) data.get(position).get("title"));
+        //set summary
         group.textSummary.setText((String) data.get(position).get("summary"));
 
         boolean hideSwitch = (boolean) data.get(position).get("hide");

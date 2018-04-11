@@ -30,7 +30,7 @@ public class MyRecyclerAdapter extends RecyclerView.Adapter<MyRecyclerAdapter.My
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.message_list_item, null);
+        View view = inflater.inflate(R.layout.dialog_list_item, null);
         MyViewHolder viewHolder = new MyViewHolder(view);
         return viewHolder;
     }

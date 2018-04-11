@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.main_activity);
         findViewById(R.id.voice_recognizer).setOnClickListener(this);
         findViewById(R.id.voice_speak).setOnClickListener(this);
         findViewById(R.id.ui_test).setOnClickListener(this);
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.voice_assist:
-                intent = new Intent(MainActivity.this, VoiceAssistDemoActivity.class);
+                intent = new Intent(MainActivity.this, VoiceAssistActivity.class);
 
             default:
                 break;

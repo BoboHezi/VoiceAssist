@@ -29,7 +29,6 @@ import org.json.JSONObject;
 /**
  * Created by zhanbo.zhang on 2018/4/3.
  */
-
 public final class VoiceEntity implements VoiceInitialListener {
     private static final String TAG = "VoiceEntity";
 
@@ -64,7 +63,6 @@ public final class VoiceEntity implements VoiceInitialListener {
     public static String answerNotFound;
 
     private VoiceEntity(Context context) {
-        Log.i(TAG, "create voice");
         this.context = context;
 
         initData();
@@ -78,6 +76,9 @@ public final class VoiceEntity implements VoiceInitialListener {
         mAiuiAgent.sendMessage(new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null));
     }
 
+    /**
+     * init data: setting info, values, system language
+     */
     private void initData() {
         Resources resources = context.getResources();
         settingTitles = resources.getStringArray(R.array.setting_array);
@@ -100,6 +101,9 @@ public final class VoiceEntity implements VoiceInitialListener {
         }
     }
 
+    /**
+     * init param
+     */
     private void initParams() {
         String params = Util.readStorageParams(context);
         if (params == null || TextUtils.isEmpty(params)) {
@@ -113,7 +117,7 @@ public final class VoiceEntity implements VoiceInitialListener {
             this.params.setRecognizerBOS(4000);
             this.params.setRecognizerAccent("mandarin");
         } else {
-            this.params = Util.parseParams(params);
+            this.params = Util.parseSettingParams(params);
             this.params.setRecognizerLanguage(systemLanguage);
         }
         this.params.setVoiceName(this.params.getVoiceName());
@@ -312,7 +316,7 @@ public final class VoiceEntity implements VoiceInitialListener {
             if (b)
                 return;
             Log.i(TAG, "Recognizer Result: " + recognizerResult.getResultString());
-            String result = Util.parseVoice(recognizerResult.getResultString());
+            String result = Util.parseRecognizerResult(recognizerResult.getResultString());
             if (mOnVoiceEventListener != null)
                 mOnVoiceEventListener.onRecognizeResult(false, result);
             if (isAIUIWakeup && result != null && result.length() > 0)
@@ -388,7 +392,7 @@ public final class VoiceEntity implements VoiceInitialListener {
         //设置语音后端点:后端点静音检测时间，即用户停止说话多长时间内即认为不再输入， 自动停止录音
         mRecognizer.setParameter(SpeechConstant.VAD_EOS, params.getRecognizerEOS() + "");
 
-        Log.i(TAG, "Language: " + systemLanguage);
+        //open translate in english mode
         if (systemLanguage.equalsIgnoreCase("en_us")) {
             mRecognizer.setParameter(SpeechConstant.ASR_SCH, "0");
             mRecognizer.setParameter(SpeechConstant.ADD_CAP, "translate");

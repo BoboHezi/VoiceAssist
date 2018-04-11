@@ -74,11 +74,14 @@ public class CustomSeekBar extends View {
         paint.setColor(eBackColor);
         paint.setStrokeWidth(eBackHeight);
         paint.setAntiAlias(true);
+        //draw line negative
         canvas.drawLine(splitX, realHeight / 2, realWidth - radius, realHeight / 2, paint);
 
         paint.setColor(eProgressColor);
         paint.setStrokeWidth(eProgressHeight);
+        //draw line positive
         canvas.drawLine(radius, realHeight / 2, splitX, realHeight / 2, paint);
+        //draw point
         canvas.drawCircle(splitX, realHeight / 2, radius, paint);
     }
 
@@ -106,16 +109,15 @@ public class CustomSeekBar extends View {
         return super.onTouchEvent(event);
     }
 
-    /**
-     * (percent / 100) * (realWidth - 2 * radius) + radius = splitX ;
-     *
-     * @return
-     */
-
     public int getPercent() {
         return percent;
     }
 
+    /**
+     * set percent
+     *
+     * @param percent
+     */
     public void setPercent(int percent) {
         this.percent = percent;
         splitX = ((percent * (realWidth - 2 * radius)) / 100) + radius;

@@ -18,6 +18,24 @@
         <item>晓琳(台湾话女声)</item>
     </string-array>
 
+    <string-array name="hint_messages">
+        <item>点击麦克风开始和停止识别</item>
+        <item>试试“打开XX”</item>
+        <item>“今天天气怎么样”</item>
+        <item>“呼叫张三”，可以帮你给张三打电话</item>
+        <item>查航班，查车次，就没有我不会的</item>
+        <item>“百度一下XXX”，帮你查询你想知道的</item>
+        <item>太无聊了，让我来讲个笑话吧</item>
+        <item>我还会跟你对诗，不信试试</item>
+        <item>我还会帮你翻译哦</item>
+        <item>长按麦克风打开设置</item>
+        <item>可以在设置中切换识别的方言</item>
+        <item>可以设置是否播放回应声音哦</item>
+        <item>可以设置你想听的声音</item>
+        <item>可以设置我说话的语速和音量哦</item>
+        <item>切换发音人时要注意和当前系统语言是否一致</item>
+    </string-array>
+
     <string name="positive">是</string>
     <string name="negative">否</string>
     <string name="unknown">不好意思，我好像没听懂。。。</string>
@@ -26,4 +44,10 @@
     <string name="founded">为您找到</string>
     <string name="not_found">您的手机未安装</string>
     <string name="setting_title">设置</string>
+    <string name="opening_bluetooth">正在打开蓝牙</string>
+    <string name="opened_bluetooth">蓝牙已经开启</string>
+    <string name="not_found_bluetooth">未检测到蓝牙设备</string>
+    <string name="opening_wifi">正在打开无线网络</string>
+    <string name="opened_wifi">无线网络已经开启</string>
+    <string name="not_found_wifi">未检测到无线网络设备</string>
 </resources>

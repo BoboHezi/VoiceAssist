@@ -20,6 +20,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.eli.voiceassist.R;
 import com.eli.voiceassist.mode.AppInfo;
 import com.eli.voiceassist.mode.ContactInfo;
 import com.eli.voiceassist.mode.Echo;
@@ -37,8 +38,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -48,8 +51,10 @@ import java.util.regex.Pattern;
 public class Util {
 
     private static final String TAG = "elifli";
-
+    //list of request permission
     private static List<String> allPermissions = new ArrayList<>();
+    //map of calculated dp
+    private static Map<Float, Integer> calculatedValues = new HashMap<>();
 
     static {
         allPermissions.add(Manifest.permission.READ_CONTACTS);
@@ -60,6 +65,12 @@ public class Util {
         allPermissions.add(Manifest.permission.CAMERA);
     }
 
+    /**
+     * read aiui params
+     *
+     * @param context
+     * @return
+     */
     public static String getAIUIParams(Context context) {
         String value = "";
         AssetManager manager = context.getResources().getAssets();
@@ -73,7 +84,7 @@ public class Util {
         return value;
     }
 
-    public static String parseVoice(String voiceResult) {
+    public static String parseRecognizerResult(String voiceResult) {
         Gson gson = new Gson();
         VoiceMessage message = gson.fromJson(voiceResult, VoiceMessage.class);
         if (message == null)
@@ -81,7 +92,7 @@ public class Util {
         return message.getWord();
     }
 
-    public static SettingParams parseParams(String value) {
+    public static SettingParams parseSettingParams(String value) {
         if (value == null || TextUtils.isEmpty(value))
             return null;
 
@@ -95,6 +106,12 @@ public class Util {
         return params;
     }
 
+    /**
+     * parse aiui result
+     *
+     * @param event
+     * @return
+     */
     public static JSONObject getSemanticResult(AIUIEvent event) {
         try {
             JSONObject data = new JSONObject(event.info).getJSONArray("data").getJSONObject(0);
@@ -127,9 +144,34 @@ public class Util {
         return sb.toString();
     }
 
+    public static String[] randomHints(Context context, int length) {
+        String allHints[] = context.getResources().getStringArray(R.array.hint_messages);
+        String hints[] = new String[length];
+        hints[0] = allHints[0];
+
+        Random random = new Random();
+        List<Integer> indexes = new ArrayList<>();
+        for (int i = 1; i < hints.length; i++) {
+            while (true) {
+                int j = random.nextInt(allHints.length - 1) + 1;
+                if (!indexes.contains(j)) {
+                    indexes.add(j);
+                    break;
+                }
+            }
+            hints[i] = allHints[indexes.get(i - 1)];
+        }
+        return hints;
+    }
+
     public static int dip2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
+        if (calculatedValues != null && calculatedValues.containsKey(dpValue))
+            return calculatedValues.get(dpValue);
+        int value = (int) (dpValue * context.getResources().getDisplayMetrics().density + 0.5f);
+        if (calculatedValues != null) {
+            calculatedValues.put(dpValue, value);
+        }
+        return value;
     }
 
     public static void playSound(Context context, int rawID) {
@@ -149,7 +191,7 @@ public class Util {
         pool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             @Override
             public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                pool.play(1, 1, 1, 0, 0, 1);
+                pool.play(1, 1, 1, 1, 0, 1);
             }
         });
     }
@@ -256,13 +298,6 @@ public class Util {
     public static boolean isNumber(String values) {
         Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
         return pattern.matcher(values).matches();
-    }
-
-    public static void startDial(Context context, String number) {
-        if (number == null || number.length() < 3)
-            return;
-        Intent dialIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number));
-        context.startActivity(dialIntent);
     }
 
     public static void playMusic(Context context, String song, String artist) {

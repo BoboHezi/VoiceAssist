@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -27,6 +26,8 @@ import java.util.Map;
 
 /**
  * Created by zhanbo.zhang on 2018/4/8.
+ * <p>
+ * 设置页面
  */
 
 public class SettingActivity extends AppCompatActivity {
@@ -71,7 +72,7 @@ public class SettingActivity extends AppCompatActivity {
         percentSelectDialog.getWindow().setAttributes(lp);
 
         itemSelectDialog = new Dialog(this);
-        itemSelectDialog.setContentView(R.layout.item_select_dialog);
+        itemSelectDialog.setContentView(R.layout.setting_select_dialog);
         lp.gravity = Gravity.CENTER;
         itemSelectDialog.getWindow().setAttributes(lp);
 
@@ -109,6 +110,9 @@ public class SettingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * init param, list adapter
+     */
     private void initData() {
         data = new ArrayList<>();
         adapter = new SettingListAdapter(this, data);
@@ -116,13 +120,16 @@ public class SettingActivity extends AppCompatActivity {
         params = getParams();
     }
 
+    /**
+     * settings item click
+     */
     SettingListAdapter.OnItemClickListener itemClickListener = new SettingListAdapter.OnItemClickListener() {
         @Override
         public void onItemClicked(View parent, int position) {
-            Log.i(TAG, "item clicked: " + position);
             nowSelectIndex = position;
             switch (position) {
                 case 0:
+                    //set recognizer accent
                     if (itemSelectDialog != null) {
                         ArrayAdapter<String> selectItemsAdapter = new ArrayAdapter<>(SettingActivity.this, android.R.layout.simple_list_item_1, selectAccent);
                         selectItemList.setAdapter(selectItemsAdapter);
@@ -131,6 +138,7 @@ public class SettingActivity extends AppCompatActivity {
                     break;
 
                 case 1:
+                    //toggle speak enable
                     Switch switchButton = parent.findViewById(R.id.item_switch);
                     params.setSpeakEnable(switchButton.isChecked());
                     resetLayout(params);
@@ -138,6 +146,7 @@ public class SettingActivity extends AppCompatActivity {
                     break;
 
                 case 2:
+                    //set speaker
                     if (itemSelectDialog != null) {
                         ArrayAdapter<String> selectItemsAdapter = new ArrayAdapter<>(SettingActivity.this, android.R.layout.simple_list_item_1, selectName);
                         selectItemList.setAdapter(selectItemsAdapter);
@@ -146,6 +155,7 @@ public class SettingActivity extends AppCompatActivity {
                     break;
 
                 case 3:
+                    //set voice speed
                     if (percentSelectDialog != null) {
                         percentSelectDialog.show();
                         percentBar.setPercent(params.getVoiceSpeed());
@@ -153,6 +163,7 @@ public class SettingActivity extends AppCompatActivity {
                     break;
 
                 case 4:
+                    //set volume
                     if (percentSelectDialog != null) {
                         percentSelectDialog.show();
                         percentBar.setPercent(params.getVoiceVolume());
@@ -165,10 +176,20 @@ public class SettingActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * read params from disk
+     *
+     * @return
+     */
     private SettingParams getParams() {
-        return Util.parseParams(Util.readStorageParams(this));
+        return Util.parseSettingParams(Util.readStorageParams(this));
     }
 
+    /**
+     * set setting layout info by params
+     *
+     * @param params
+     */
     private void resetLayout(SettingParams params) {
         if (params == null)
             return;
@@ -213,6 +234,7 @@ public class SettingActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        //write params to disk
         Util.writeStorageParams(SettingActivity.this, params.toString());
         super.onStop();
     }
@@ -221,15 +243,4 @@ public class SettingActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
-
-    /**
-     *******Recognizer********
-     * Accent       口音
-     * Speak        是否发声
-     * VOICE_NAME   发音人
-     * SPEED        语速
-     * VOLUME       音量
-     *
-     * /storage/emulated/0/Android/data/com.eli.voiceassist/files/params
-     */
 }

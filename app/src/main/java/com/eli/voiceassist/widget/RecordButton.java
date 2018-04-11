@@ -14,6 +14,9 @@ import android.view.animation.DecelerateInterpolator;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * record button
+ */
 public class RecordButton extends View {
 
     private static final String TAG = "RecordButton";
@@ -66,7 +69,7 @@ public class RecordButton extends View {
         //设置组件尺寸
         setMeasuredDimension(width, width);
         circleRadius = width / 2;
-        calculateSizeSize(circleRadius);
+        calculateSize(circleRadius);
     }
 
     @Override
@@ -103,20 +106,9 @@ public class RecordButton extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             this.animate().scaleX(0.87f).scaleY(0.87f).setDuration(150).setInterpolator(new DecelerateInterpolator());
+            //Util.playSound(context, R.raw.effect_tick);
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             this.animate().scaleX(1).scaleY(1).setDuration(150).setInterpolator(new DecelerateInterpolator());
-            //Util.playSound(context, R.raw.effect_tick);
-            //this.playSoundEffect(SoundEffectConstants.CLICK);
-
-            /*if (!breath.isBreathing()) {
-                startBreath();
-                if (listener != null)
-                    listener.onBreathStateChanged(OnBreathListener.BREATH_STATE_START);
-            } else {
-                stopBreath();
-                if (listener != null)
-                    listener.onBreathStateChanged(OnBreathListener.BREATH_STATE_STOP);
-            }*/
         }
         return super.onTouchEvent(event);
     }
@@ -140,7 +132,7 @@ public class RecordButton extends View {
         breath.stopBreath();
     }
 
-    private void calculateSizeSize(int width) {
+    private void calculateSize(int width) {
         int halfSize = width / 2;
         int s30 = width / 10;
         int s40 = (int) (width / 7.5);

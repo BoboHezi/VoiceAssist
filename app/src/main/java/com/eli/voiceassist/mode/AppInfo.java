@@ -3,7 +3,6 @@ package com.eli.voiceassist.mode;
 /**
  * Created by zhanbo.zhang on 2018/4/3.
  */
-
 public class AppInfo {
 
     private String appName;

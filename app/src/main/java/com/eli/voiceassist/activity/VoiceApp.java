@@ -12,6 +12,7 @@ public class VoiceApp extends Application {
 
     @Override
     public void onCreate() {
+        //initial speech
         SpeechUtility.createUtility(this, "appid=" + appID);
         super.onCreate();
     }

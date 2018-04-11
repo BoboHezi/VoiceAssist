@@ -5,6 +5,7 @@
     android:layout_height="match_parent">
 
     <FrameLayout
+        android:id="@+id/main_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#aa434343">
@@ -12,7 +13,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="80dp">
+            android:orientation="vertical">
 
             <ListView
                 android:id="@+id/dialog_list"
@@ -22,14 +23,13 @@
                 android:stackFromBottom="true"
                 android:transcriptMode="alwaysScroll"
                 android:listSelector="@android:color/transparent"
-                android:scrollbars="none"></ListView>
+                android:scrollbars="none" />
         </LinearLayout>
 
         <com.eli.voiceassist.widget.RecordButton
             android:id="@+id/voice_recode"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:clickable="true"
             android:layout_gravity="bottom|center" />
     </FrameLayout>
 </android.support.design.widget.CoordinatorLayout>

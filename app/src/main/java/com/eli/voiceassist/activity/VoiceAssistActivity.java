@@ -1,14 +1,27 @@
 package com.eli.voiceassist.activity;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.eli.voiceassist.R;
@@ -31,14 +44,16 @@ import java.util.Map;
 /**
  * Created by zhanbo.zhang on 2018/3/28.
  */
-public class VoiceAssistDemoActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
+public class VoiceAssistActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener {
 
     private static final String TAG = "elifli";
-
+    private static final int HANDLER_LOAD_HINT = 1;
+    private static final int HANDLER_UNLOAD_HINT = 2;
     private RecordButton mVoiceRecode;
     private ListView mDialogListView;
+    private LinearLayout headerLayout;
 
-    private boolean isRecording = false;
+    private boolean inRecognition = false;
 
     private VoiceEntity mVoiceEntity;
     private List<Map<String, Object>> mDialogs;
@@ -55,6 +70,9 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         Util.permissionRequest(this);
         initVoiceAssist();
         readInfo();
+
+        startRecognizer();
+        inRecognition = true;
     }
 
     /**
@@ -72,8 +90,8 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         new Thread(new Runnable() {
             @Override
             public void run() {
-                mApps = Util.readAppList(VoiceAssistDemoActivity.this);
-                mContacts = Util.readContacts(VoiceAssistDemoActivity.this);
+                mApps = Util.readAppList(VoiceAssistActivity.this);
+                mContacts = Util.readContacts(VoiceAssistActivity.this);
                 if (mContacts != null) {
                     updateContact(mContacts);
                 }
@@ -93,8 +111,54 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         mDialogListAdapter = new DialogListAdapter(this, mDialogs);
         mDialogListView.setAdapter(mDialogListAdapter);
         mDialogListView.setOnScrollListener(scrollListener);
+        headerLayout = (LinearLayout) LayoutInflater.from(VoiceAssistActivity.this).inflate(R.layout.hint_layout, null);
+
+        View footView = new View(this);
+        footView.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Util.dip2px(this, 100)));
+        mDialogListView.addFooterView(footView);
+
+        new Handler().postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        hintHandler.sendEmptyMessage(HANDLER_LOAD_HINT);
+                    }
+                }, 2000
+        );
     }
 
+    /**
+     * handler: load and unload hint layout
+     */
+    private Handler hintHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            FrameLayout mainFrame = (FrameLayout) findViewById(R.id.main_frame);
+            if (msg.what == HANDLER_LOAD_HINT) {
+                FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                layoutParams.topMargin = Util.dip2px(VoiceAssistActivity.this, 40);
+                layoutParams.leftMargin = Util.dip2px(VoiceAssistActivity.this, 20);
+                layoutParams.rightMargin = Util.dip2px(VoiceAssistActivity.this, 20);
+
+                headerLayout.setLayoutParams(layoutParams);
+                mainFrame.addView(headerLayout, 0);
+                headerLayout.startAnimation(AnimationUtils.loadAnimation(VoiceAssistActivity.this, R.anim.dialog_header_enter));
+
+                ListView hintList = headerLayout.findViewById(R.id.hint_list);
+                String hints[] = Util.randomHints(VoiceAssistActivity.this, 5);
+                ArrayAdapter<String> hintAdapter = new ArrayAdapter<>(VoiceAssistActivity.this, R.layout.hint_list_item, hints);
+                hintList.setAdapter(hintAdapter);
+            } else if (msg.what == HANDLER_UNLOAD_HINT) {
+                headerLayout.startAnimation(AnimationUtils.loadAnimation(VoiceAssistActivity.this, R.anim.dialog_header_exit));
+                ((FrameLayout) findViewById(R.id.main_frame)).removeView(headerLayout);
+            }
+            return false;
+        }
+    });
+
+    /**
+     * dialog list scroll listener
+     */
     AbsListView.OnScrollListener scrollListener = new AbsListView.OnScrollListener() {
         @Override
         public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -114,21 +178,43 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
 
     @Override
     public void onClick(View v) {
-        /*showMessage(Util.randomString(20), isRecording);
-        isRecording = !isRecording;*/
-        if (!isRecording) {
+        if (!inRecognition) {
+            startRecognizer();
+        } else {
+            stopRecognizer();
+        }
+        inRecognition = !inRecognition;
+    }
+
+    /**
+     * start recognizer
+     */
+    private void startRecognizer() {
+        if (mVoiceEntity != null) {
             mVoiceEntity.startListen();
             mVoiceRecode.startBreath();
-        } else {
+        }
+    }
+
+    /**
+     * stop recognizer
+     */
+    private void stopRecognizer() {
+        if (mVoiceEntity != null) {
             mVoiceEntity.stopListen();
             mVoiceRecode.stopBreath();
         }
-        isRecording = !isRecording;
     }
 
+    /**
+     * long click listener for record button
+     *
+     * @param v
+     * @return
+     */
     @Override
     public boolean onLongClick(View v) {
-        Intent settingIntent = new Intent(VoiceAssistDemoActivity.this, SettingActivity.class);
+        Intent settingIntent = new Intent(VoiceAssistActivity.this, SettingActivity.class);
         startActivity(settingIntent);
         return true;
     }
@@ -140,6 +226,13 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         mVoiceEntity.stopSpeak();
     }
 
+    /**
+     * handle permission request result
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -147,10 +240,11 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         for (String s : permissions) {
             if (grantResults[index] == 0) {
                 if (Manifest.permission.READ_CONTACTS.equals(s)) {
+                    //read contact info(sync)
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            mContacts = Util.readContacts(VoiceAssistDemoActivity.this);
+                            mContacts = Util.readContacts(VoiceAssistActivity.this);
                             if (mContacts != null) {
                                 updateContact(mContacts);
                             }
@@ -185,18 +279,17 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         public void onRecognizeResult(boolean wrong, String result) {
             Log.i(TAG, (wrong ? "Error: " : "") + result);
             showMessage(result, !wrong);
-            if (isRecording) {
+            if (inRecognition) {
                 mVoiceRecode.stopBreath();
-                isRecording = false;
+                inRecognition = false;
             }
         }
 
         @Override
         public void onRecognizerStatusChanged(boolean status) {
-            Log.i(TAG, (status ? "Begin" : "End") + " Recognizer");
             if (!status) {
                 mVoiceRecode.stopBreath();
-                isRecording = false;
+                inRecognition = false;
             }
         }
 
@@ -260,36 +353,7 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
                     break;
 
                 case Echo.INTENT_OPEN_APP:
-                    String appName = echo.getParams().get(0);
-                    Log.i(TAG, "open " + appName);
-                    if (mApps != null && mApps.size() > 0) {
-                        List<AppInfo> matchedApps = Util.matchApp(appName, mApps);
-                        if (matchedApps != null && matchedApps.size() > 0) {
-                            if (matchedApps.size() == 1) {
-                                //find only one matched
-                                String msg = VoiceEntity.answerOpen + appName;
-                                showMessage(msg, false);
-                                mVoiceEntity.speakMessage(msg);
-                                Util.openAPPWithPackage(this, matchedApps.get(0).getPackageName());
-                            } else {
-                                //find multi-matched
-                                StringBuilder sb = new StringBuilder(VoiceEntity.answerFound);
-                                for (int index = 0; index < matchedApps.size(); index++) {
-                                    AppInfo app = matchedApps.get(index);
-                                    sb.append(app.getAppName());
-                                    if (index < matchedApps.size() - 1)
-                                        sb.append(",");
-                                    Log.i(TAG, "Name: " + app.getAppName() + "\tPackage: " + app.getPackageName());
-                                }
-                                showMessage(sb.toString(), false);
-                                mVoiceEntity.speakMessage(sb.toString());
-                            }
-                        } else {
-                            String msg = VoiceEntity.answerNotFound + appName;
-                            showMessage(msg, false);
-                            mVoiceEntity.speakMessage(msg);
-                        }
-                    }
+                    handleOpen(echo);
                     break;
 
                 default:
@@ -298,16 +362,20 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         }
     }
 
+    /**
+     * echo: dial someone/number
+     *
+     * @param echo
+     */
     private void handleDial(Echo echo) {
         if (echo.getParams().size() > 0) {
             String name = echo.getParams().get(0);
             String number = null;
-            Log.i(TAG, "call " + name);
             if (Util.isNumber(name)) {
-                //输入为号码
+                //number
                 number = name;
             } else {
-                //输入为联系人
+                //someone
                 if (mContacts != null) {
                     for (ContactInfo contact : mContacts) {
                         if (contact.getName().equals(name))
@@ -317,7 +385,7 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
             }
             if (number != null) {
                 showMessage(VoiceEntity.answerCalling + name, false);
-                Util.startDial(this, number);
+                startDial(number);
             } else {
                 showMessage(echo.getEcho(), false);
                 mVoiceEntity.speakMessage(echo.getEcho());
@@ -326,12 +394,97 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
     }
 
     /**
-     * display message in dialog
+     * dial number
+     *
+     * @param number
+     */
+    private void startDial(String number) {
+        if (number == null || number.length() < 3)
+            return;
+        Intent dialIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number));
+        startActivity(dialIntent);
+    }
+
+    /**
+     * echo: open app/device
+     *
+     * @param echo
+     */
+    private void handleOpen(Echo echo) {
+        String appName = echo.getParams().get(0);
+        //device
+        if (appName.contains("蓝牙") || appName.equalsIgnoreCase("bluetooth")) {
+            BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            if (bluetoothManager != null) {
+                BluetoothAdapter adapter = bluetoothManager.getAdapter();
+                if (adapter != null) {
+                    if (!adapter.isEnabled()) {
+                        showMessage(getResources().getString(R.string.opening_bluetooth), false);
+                        Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        enableIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(enableIntent);
+                    } else {
+                        showMessage(getResources().getString(R.string.opened_bluetooth), false);
+                    }
+                } else {
+                    showMessage(getResources().getString(R.string.not_found_bluetooth), false);
+                }
+            }
+            return;
+        } else if (appName.contains("无线网") || appName.equalsIgnoreCase("wifi")) {
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wifiManager != null) {
+                int state = wifiManager.getWifiState();
+                if (state == WifiManager.WIFI_STATE_DISABLED || state == WifiManager.WIFI_STATE_DISABLING) {
+                    showMessage(getResources().getString(R.string.opening_wifi), false);
+                    wifiManager.setWifiEnabled(true);
+                } else if (state == WifiManager.WIFI_STATE_ENABLED || state == WifiManager.WIFI_STATE_ENABLING) {
+                    showMessage(getResources().getString(R.string.opened_wifi), false);
+                }
+            } else {
+                showMessage(getResources().getString(R.string.not_found_wifi), false);
+            }
+            return;
+        }
+
+        //app
+        if (mApps != null && mApps.size() > 0) {
+            List<AppInfo> matchedApps = Util.matchApp(appName, mApps);
+            if (matchedApps != null && matchedApps.size() > 0) {
+                if (matchedApps.size() == 1) {
+                    //find only one matched
+                    String msg = VoiceEntity.answerOpen + appName;
+                    showMessage(msg, false);
+                    mVoiceEntity.speakMessage(msg);
+                    Util.openAPPWithPackage(this, matchedApps.get(0).getPackageName());
+                } else {
+                    //find multi-matched
+                    StringBuilder sb = new StringBuilder(VoiceEntity.answerFound);
+                    for (int index = 0; index < matchedApps.size(); index++) {
+                        AppInfo app = matchedApps.get(index);
+                        sb.append(app.getAppName());
+                        if (index < matchedApps.size() - 1)
+                            sb.append(",");
+                    }
+                    showMessage(sb.toString(), false);
+                    mVoiceEntity.speakMessage(sb.toString());
+                }
+            } else {
+                String msg = VoiceEntity.answerNotFound + appName;
+                showMessage(msg, false);
+                mVoiceEntity.speakMessage(msg);
+            }
+        }
+    }
+
+    /**
+     * display message in dialog list
      *
      * @param message
      * @param isUser
      */
     private void showMessage(String message, boolean isUser) {
+        hintHandler.sendEmptyMessage(HANDLER_UNLOAD_HINT);
         if (message == null || message.equals("") || message.length() == 0)
             return;
         message = message.replace("\"", "");
@@ -351,6 +504,11 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
         mDialogListAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * display search result in dialog list
+     *
+     * @param result
+     */
     private void showSearchResult(WebSearchResult result) {
         if (result == null)
             return;
@@ -377,14 +535,12 @@ public class VoiceAssistDemoActivity extends AppCompatActivity implements View.O
             sb.append("\n");
         }
         final String contactLexicon = sb.toString();
-        if (mVoiceEntity != null && !contactLexicon.equals(Util.readStorageContacts(VoiceAssistDemoActivity.this))) {
-            Log.i(TAG, "update contact");
+        if (mVoiceEntity != null && !contactLexicon.equals(Util.readStorageContacts(VoiceAssistActivity.this))) {
             mVoiceEntity.updateLexicon("contact", contactLexicon, new LexiconListener() {
                 @Override
                 public void onLexiconUpdated(String s, SpeechError speechError) {
                     if (speechError == null) {
-                        Log.i(TAG, "update success");
-                        Util.writeStorageContacts(VoiceAssistDemoActivity.this, contactLexicon);
+                        Util.writeStorageContacts(VoiceAssistActivity.this, contactLexicon);
                     }
                 }
             });

@@ -8,10 +8,10 @@
     <com.eli.voiceassist.widget.CustomSeekBar
         android:id="@+id/percent_bar"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="@dimen/percent_select_seekBar_height"
         android:clickable="true"
-        app:seekBar_backColor="#4e4e4e"
-        app:seekBar_progressColor="#16866c"
-        android:layout_margin="15dp" />
+        app:seekBar_backColor="@color/colorSeekBarNegative"
+        app:seekBar_progressColor="@color/colorSeekBarPositive"
+        android:layout_margin="@dimen/percent_select_seekBar_margin" />
 
 </LinearLayout>

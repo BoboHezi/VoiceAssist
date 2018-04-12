@@ -8,24 +8,24 @@
         android:id="@+id/out_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="5dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:paddingTop="5dp"
+        android:paddingBottom="@dimen/dialog_item_vertical_padding"
+        android:paddingTop="@dimen/dialog_item_vertical_padding"
+        android:paddingLeft="@dimen/dialog_item_horizontal_padding"
+        android:paddingRight="@dimen/dialog_item_horizontal_padding"
         android:orientation="vertical">
 
         <ImageView
             android:id="@+id/img"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="@dimen/dialog_item_image_size"
+            android:layout_height="@dimen/dialog_item_image_size"
             android:layout_gravity="center" />
 
         <TextView
             android:id="@+id/message"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:maxEms="10"
-            android:textColor="#939393"
+            android:maxEms="@integer/dialog_item_max_ems"
+            android:textColor="@color/colorDialogText"
             android:textSize="17dp" />
     </LinearLayout>
 </LinearLayout>

@@ -3,9 +3,9 @@
     android:id="@+id/TextView"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:textSize="16dp"
-    android:paddingTop="15dp"
-    android:paddingBottom="15dp"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp"
-    android:textColor="#c9c9c9" />
+    android:textSize="@dimen/hint_item_text_size"
+    android:paddingTop="@dimen/hint_item_vertical_padding"
+    android:paddingBottom="@dimen/hint_item_vertical_padding"
+    android:paddingLeft="@dimen/hint_item_horizontal_padding"
+    android:paddingRight="@dimen/hint_item_horizontal_padding"
+    android:textColor="@color/colorHintText" />

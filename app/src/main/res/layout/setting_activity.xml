@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#aad2d2d2"
+    android:background="@color/colorSettingBack"
     android:orientation="vertical">
 
     <LinearLayout
@@ -13,12 +13,12 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="@dimen/setting_title_vertical_margin"
+            android:layout_marginBottom="@dimen/setting_title_vertical_margin"
             android:gravity="center"
             android:text="@string/setting_title"
-            android:textColor="#000"
-            android:textSize="17dp" />
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/setting_title_text_size" />
     </LinearLayout>
 
     <ListView

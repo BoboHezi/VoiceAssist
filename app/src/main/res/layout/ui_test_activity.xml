@@ -4,27 +4,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout
+    <EditText
+        android:id="@+id/et_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/bt_trans"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Translate" />
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tran_result"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorMainBack">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </LinearLayout>
-
-        <com.eli.voiceassist.widget.RecordButton
-            android:id="@+id/record_button"
-            android:clickable="true"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:soundEffectsEnabled="true"
-            android:layout_gravity="bottom|center" />
-    </FrameLayout>
+            android:layout_height="wrap_content" />
+    </ScrollView>
 </LinearLayout>

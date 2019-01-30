@@ -104,6 +104,8 @@ public class SettingListAdapter extends BaseAdapter {
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (group.switchButton.getVisibility() != View.GONE)
+                    group.switchButton.setChecked(!group.switchButton.isChecked());
                 if (listener != null)
                     listener.onItemClicked(parentView, position);
             }

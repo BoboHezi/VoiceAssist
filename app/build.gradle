@@ -20,15 +20,15 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
-    compile 'com.android.support:design:26.0.0-alpha1'
-    compile files('libs/AIUI.jar')
-    compile files('libs/Msc.jar')
-    compile files('libs/Sunflower.jar')
-    compile files('libs/volley_library-1.0.19.jar')
-    compile files('libs/gson-2.2.4.jar')
-    compile 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    implementation 'com.android.support:design:26.0.0-alpha1'
+    implementation files('libs/AIUI.jar')
+    implementation files('libs/Msc.jar')
+    implementation files('libs/Sunflower.jar')
+    implementation files('libs/volley_library-1.0.19.jar')
+    implementation files('libs/gson-2.2.4.jar')
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     //implementation files('libs/volley_library-1.0.19.jar')
 }
